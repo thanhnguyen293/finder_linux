@@ -1,0 +1,254 @@
+{
+  "@@locale": "en",
+  "appTitle": "Finder",
+  "sectionFavorites": "Favorites",
+  "sectionLocations": "Locations",
+  "placeComputer": "Computer",
+  "placeTrash": "Trash",
+  "tooltipBack": "Back",
+  "tooltipForward": "Forward",
+  "tooltipViewIcons": "View as Icons",
+  "tooltipViewList": "View as List",
+  "tooltipViewColumns": "View as Columns",
+  "tooltipEject": "Eject",
+  "searchHint": "Search",
+  "columnName": "Name",
+  "columnModified": "Date Modified",
+  "columnSize": "Size",
+  "columnKind": "Kind",
+  "kindFolder": "Folder",
+  "kindImage": "Image",
+  "kindVideo": "Movie",
+  "kindAudio": "Audio",
+  "kindText": "Plain Text",
+  "kindCode": "Source Code",
+  "kindPdf": "PDF Document",
+  "kindArchive": "Archive",
+  "kindDocument": "Document",
+  "kindSpreadsheet": "Spreadsheet",
+  "kindPresentation": "Presentation",
+  "kindApplication": "Application",
+  "kindOther": "Document",
+  "kindOtherExt": "{ext} File",
+  "@kindOtherExt": {
+    "placeholders": {
+      "ext": {
+        "type": "String"
+      }
+    }
+  },
+  "itemCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectedOfCount": "{selected} of {count} selected",
+  "@selectedOfCount": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "spaceAvailable": "{size} available",
+  "@spaceAvailable": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyFolder": "Empty folder",
+  "noResults": "No results for “{query}”",
+  "@noResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "todayAt": "Today at {time}",
+  "@todayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "yesterdayAt": "Yesterday at {time}",
+  "@yesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "menuOpen": "Open",
+  "menuQuickLook": "Quick Look",
+  "menuRename": "Rename",
+  "menuDuplicate": "Duplicate",
+  "menuCopy": "Copy",
+  "menuCut": "Cut",
+  "menuPaste": "Paste",
+  "menuMoveToTrash": "Move to Trash",
+  "menuDeleteImmediately": "Delete Immediately…",
+  "menuPutBack": "Put Back",
+  "menuEmptyTrash": "Empty Trash",
+  "menuNewFolder": "New Folder",
+  "menuGetInfo": "Get Info",
+  "menuCopyPath": "Copy Path",
+  "menuOpenInTerminal": "Open in Terminal",
+  "menuAddToSidebar": "Add to Sidebar",
+  "menuRemoveFromSidebar": "Remove from Sidebar",
+  "menuShowHidden": "Show Hidden Files",
+  "menuHideHidden": "Hide Hidden Files",
+  "menuNewWindow": "New Window",
+  "goToFolderTitle": "Go to Folder",
+  "goToFolderHint": "e.g. ~/Documents or /etc",
+  "buttonGo": "Go",
+  "buttonCancel": "Cancel",
+  "buttonDelete": "Delete",
+  "buttonOk": "OK",
+  "deleteConfirmTitle": "{count, plural, =1{Delete this item immediately?} other{Delete {count} items immediately?}}",
+  "@deleteConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteConfirmBody": "You can’t undo this action.",
+  "emptyTrashConfirmTitle": "Permanently erase the items in the Trash?",
+  "infoKind": "Kind",
+  "infoSize": "Size",
+  "infoWhere": "Where",
+  "infoModified": "Modified",
+  "infoPermissions": "Permissions",
+  "infoCalculating": "Calculating…",
+  "untitledFolder": "untitled folder",
+  "copySuffix": "copy",
+  "pathCopied": "Path copied",
+  "movedToTrash": "{count, plural, =1{Moved 1 item to Trash} other{Moved {count} items to Trash}}",
+  "@movedToTrash": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorFolderNotFound": "The folder “{path}” can’t be found.",
+  "@errorFolderNotFound": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "errorOperation": "The operation can’t be completed: {message}",
+  "@errorOperation": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "errorNameTaken": "The name “{name}” is already taken.",
+  "@errorNameTaken": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "errorInvalidName": "That name can’t be used.",
+  "quickLookNoPreview": "No preview available",
+  "tooltipGroupSort": "Group and Sort",
+  "menuGroupBy": "Group By",
+  "menuSortBy": "Sort By",
+  "groupNone": "None",
+  "groupToday": "Today",
+  "groupYesterday": "Yesterday",
+  "groupPrevious7Days": "Previous 7 Days",
+  "groupPrevious30Days": "Previous 30 Days",
+  "groupFolders": "Folders",
+  "groupOther": "Other",
+  "sizeZero": "Zero bytes",
+  "sizeLessThan": "Less than {size}",
+  "@sizeLessThan": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "sizeBetween": "{from} to {to}",
+  "@sizeBetween": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "sizeAtLeast": "{size} or more",
+  "@sizeAtLeast": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "menuSettings": "Settings…",
+  "settingsTitle": "Finder Settings",
+  "settingsGeneral": "General",
+  "settingsSidebar": "Sidebar",
+  "settingsAdvanced": "Advanced",
+  "settingsNewWindowsShow": "New windows show:",
+  "settingsDefaultView": "Default view:",
+  "settingsAppearance": "Appearance:",
+  "settingsLanguage": "Language:",
+  "settingsShowInSidebar": "Show these items in the sidebar:",
+  "settingsBookmarks": "Bookmarked folders",
+  "settingsExternalDrives": "External drives",
+  "settingsShowHidden": "Show hidden files",
+  "settingsFoldersOnTop": "Keep folders on top when sorting",
+  "settingsThumbnails": "Show image previews in icons",
+  "settingsWarnEmptyTrash": "Show warning before emptying the Trash",
+  "settingsNewWindowsNote": "Group, sort and view choices apply to open windows and new ones.",
+  "appearanceSystem": "System",
+  "appearanceLight": "Light",
+  "appearanceDark": "Dark",
+  "languageSystem": "System",
+  "viewIcons": "Icons",
+  "viewList": "List",
+  "viewColumns": "Columns",
+  "placeHome": "Home",
+  "placeDesktop": "Desktop",
+  "placeDocuments": "Documents",
+  "placeDownloads": "Downloads",
+  "placePictures": "Pictures",
+  "placeMusic": "Music",
+  "placeVideos": "Videos",
+  "tooltipNewTab": "New Tab",
+  "tooltipCloseTab": "Close Tab",
+  "menuOpenInNewTab": "Open in New Tab",
+  "menuCloseOtherTabs": "Close Other Tabs",
+  "menuMoveTabToNewWindow": "Move Tab to New Window",
+  "menuMergeAllWindows": "Merge All Windows",
+  "mergedWindows": "{count, plural, =0{No other Finder windows to merge} =1{Merged 1 window} other{Merged {count} windows}}",
+  "@mergedWindows": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}
