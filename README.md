@@ -90,3 +90,7 @@ flutter analyze && flutter test
 - Tìm kiếm chỉ lọc thư mục hiện tại (chưa tìm đệ quy).
 - Dock/"Show in folder" của trình duyệt vẫn gọi Nautilus qua D-Bus `org.freedesktop.FileManager1`.
 - Đổi Settings không tự cập nhật các cửa sổ khác đang mở (mỗi cửa sổ là một tiến trình).
+
+## License
+
+[MIT](LICENSE)
