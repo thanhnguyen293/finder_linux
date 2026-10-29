@@ -54,11 +54,15 @@ class FinderApp extends StatelessWidget {
     required this.initialPath,
     this.initialSelection,
     this.fs = const FileSystemService(),
+    this.nativeDragAndDrop = true,
   });
 
   final PlacesService places;
   final SettingsController settings;
   final FileSystemService fs;
+
+  /// Platform drag and drop (needs the native plugin; off in widget tests).
+  final bool nativeDragAndDrop;
   final String initialPath;
   final String? initialSelection;
 
@@ -97,6 +101,7 @@ class FinderApp extends StatelessWidget {
               fs: fs,
               places: places,
               settings: settings,
+              nativeDragAndDrop: nativeDragAndDrop,
               initialPath: initialPath,
               initialSelection: initialSelection,
             ),

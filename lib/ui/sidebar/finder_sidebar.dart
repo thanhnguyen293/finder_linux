@@ -143,9 +143,7 @@ class _PlaceRowState extends State<_PlaceRow> {
           onTap: () => FinderCommands(context).goTo(place.path),
           child: FolderDropTarget(
             dir: place.path,
-            onDrop: place.kind == PlaceKind.trash
-                ? (payload) => scope.actions.trashPaths(payload.paths)
-                : null,
+            toTrash: place.kind == PlaceKind.trash,
             builder: (context, hovering) => Container(
               height: context.scaled(FinderMetrics.sidebarRowHeight),
               padding: const EdgeInsets.symmetric(horizontal: 8),

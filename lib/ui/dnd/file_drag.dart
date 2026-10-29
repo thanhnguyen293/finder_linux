@@ -1,53 +1,40 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart' show Material, MaterialType;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart' as p;
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/file_entry.dart';
+import '../../state/drop_rules.dart';
 import '../../theme/finder_theme.dart';
 import '../finder_scope.dart';
 import '../widgets/file_icon.dart';
 
-/// What is being dragged: one or more items from one folder.
-@immutable
-class FileDragPayload {
-  const FileDragPayload({required this.entries});
+// Drag and drop goes through the platform (GTK) session for every drag, so
+// the same code handles drags inside Finder, files dropped in from other
+// apps, and files dragged out to them. Each dragged file carries its path
+// as `localData` (Finder-internal) and a file:// URI (other apps).
 
-  final List<FileEntry> entries;
-
-  List<String> get paths => [for (final e in entries) e.path];
-
-  /// Whether dropping into [dir] would do anything sensible: not into the
-  /// folder the items already live in, nor into one of the dragged folders.
-  bool canDropInto(String dir) => entries.every(
-    (e) => e.parent != dir && e.path != dir && !p.isWithin(e.path, dir),
-  );
-}
-
-/// Drop handler shared by every target. Ctrl held at drop time copies,
-/// otherwise items move, matching GNOME Files.
+/// Moves or copies [paths] into [destDir]; name clashes are numbered.
 Future<void> dropFiles(
   BuildContext context,
-  FileDragPayload payload,
-  String destDir,
-) {
-  final scope = FinderScope.of(context);
-  final copy = HardwareKeyboard.instance.isControlPressed;
-  return scope.actions.dropInto(
-    payload.paths,
-    destDir,
-    copy: copy,
-    copySuffix: AppLocalizations.of(context).copySuffix,
-  );
-}
+  List<String> paths,
+  String destDir, {
+  required bool copy,
+}) => FinderScope.of(context).actions.dropInto(
+  paths,
+  destDir,
+  copy: copy,
+  copySuffix: AppLocalizations.of(context).copySuffix,
+);
 
-/// Makes an item draggable. The drag starts only once the pointer has
-/// moved past the slop, so clicks and double-clicks never begin one.
-class FileDraggable extends StatelessWidget {
+/// Drag sources currently on screen, by path, so dragging one selected
+/// item can carry the rest of the selection along.
+final _dragSources = <String, GlobalKey<DragItemWidgetState>>{};
+
+/// Makes an item draggable, within Finder and out to other apps.
+class FileDraggable extends StatefulWidget {
   const FileDraggable({
     super.key,
     required this.entry,
@@ -60,33 +47,74 @@ class FileDraggable extends StatelessWidget {
   final VoidCallback? onDragStarted;
 
   @override
+  State<FileDraggable> createState() => _FileDraggableState();
+}
+
+class _FileDraggableState extends State<FileDraggable> {
+  final _key = GlobalKey<DragItemWidgetState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _dragSources[widget.entry.path] = _key;
+  }
+
+  @override
+  void didUpdateWidget(FileDraggable old) {
+    super.didUpdateWidget(old);
+    if (old.entry.path != widget.entry.path) {
+      _unregister(old.entry.path);
+      _dragSources[widget.entry.path] = _key;
+    }
+  }
+
+  @override
+  void dispose() {
+    _unregister(widget.entry.path);
+    super.dispose();
+  }
+
+  void _unregister(String path) {
+    if (_dragSources[path] == _key) _dragSources.remove(path);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final b = FinderScope.of(context).browser;
-    return _SlopDraggable<FileDragPayload>(
-      // Dragging a selected item takes the whole selection along.
-      data: FileDragPayload(
-        entries: b.isSelected(entry.path) ? b.selectedEntries : [entry],
+    final entry = widget.entry;
+    if (!FinderScope.of(context).nativeDragAndDrop) return widget.child;
+    return DragItemWidget(
+      key: _key,
+      allowedOperations: () => const [DropOperation.move, DropOperation.copy],
+      dragItemProvider: (_) =>
+          DragItem(localData: entry.path, suggestedName: entry.name)
+            ..add(Formats.fileUri(Uri.file(entry.path))),
+      // The picture the platform shows under the pointer.
+      dragBuilder: (context, _) => _DragFeedback(entry: entry),
+      child: DraggableWidget(
+        dragItemsProvider: (context) {
+          widget.onDragStarted?.call();
+          final b = FinderScope.of(context).browser;
+          // A selected item drags the whole (visible) selection with it.
+          final paths = b.isSelected(entry.path)
+              ? [entry.path, ...b.selection.where((p) => p != entry.path)]
+              : [entry.path];
+          return [for (final path in paths) ?_dragSources[path]?.currentState];
+        },
+        child: widget.child,
       ),
-      allowedButtonsFilter: (buttons) => buttons == kPrimaryMouseButton,
-      onDragStarted: onDragStarted,
-      dragAnchorStrategy: pointerDragAnchorStrategy,
-      feedback: _DragFeedback(
-        entry: entry,
-        count: b.isSelected(entry.path) ? b.selection.length : 1,
-      ),
-      child: child,
     );
   }
 }
 
-/// Wraps a drop zone for folder [dir]. [builder] gets whether acceptable
-/// files hover over it, to draw a highlight. [onLinger] fires when files
-/// rest on the target, for spring-loaded tabs.
+/// Wraps a drop zone for folder [dir]. [builder] gets whether files hover
+/// over it, to draw a highlight. [onLinger] fires when files rest on the
+/// target (spring-loaded tabs).
 class FolderDropTarget extends StatefulWidget {
   const FolderDropTarget({
     super.key,
     required this.dir,
     required this.builder,
+    this.toTrash = false,
     this.onDrop,
     this.onLinger,
   });
@@ -94,8 +122,11 @@ class FolderDropTarget extends StatefulWidget {
   final String dir;
   final Widget Function(BuildContext context, bool hovering) builder;
 
-  /// Overrides the default move/copy into [dir] (e.g. Trash).
-  final void Function(FileDragPayload payload)? onDrop;
+  /// Dropping here moves files to the Trash instead of into [dir].
+  final bool toTrash;
+
+  /// Overrides the default move/copy into [dir].
+  final Future<void> Function(List<String> paths, {required bool copy})? onDrop;
   final VoidCallback? onLinger;
 
   @override
@@ -103,6 +134,7 @@ class FolderDropTarget extends StatefulWidget {
 }
 
 class _FolderDropTargetState extends State<FolderDropTarget> {
+  bool _hovering = false;
   Timer? _linger;
 
   @override
@@ -111,33 +143,98 @@ class _FolderDropTargetState extends State<FolderDropTarget> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return DragTarget<FileDragPayload>(
-      onWillAcceptWithDetails: (d) {
-        final ok = widget.onDrop != null || d.data.canDropInto(widget.dir);
-        if (ok && widget.onLinger != null) {
-          _linger?.cancel();
-          _linger = Timer(const Duration(milliseconds: 550), () {
-            if (mounted) widget.onLinger?.call();
-          });
-        }
-        return ok;
-      },
-      onLeave: (_) => _linger?.cancel(),
-      onAcceptWithDetails: (d) {
-        _linger?.cancel();
-        final drop = widget.onDrop;
-        if (drop != null) {
-          drop(d.data);
-        } else {
-          dropFiles(context, d.data, widget.dir);
-        }
-      },
-      builder: (context, candidates, _) =>
-          widget.builder(context, candidates.isNotEmpty),
+  void _setHovering(bool value) {
+    if (!value) _linger?.cancel();
+    if (value == _hovering || !mounted) return;
+    setState(() => _hovering = value);
+    if (value && widget.onLinger != null) {
+      _linger = Timer(const Duration(milliseconds: 550), () {
+        if (mounted && _hovering) widget.onLinger?.call();
+      });
+    }
+  }
+
+  DropAction _decide(DropSession session) {
+    final local = [
+      for (final item in session.items)
+        if (item.localData case final String path) path,
+    ];
+    final keys = HardwareKeyboard.instance;
+    return decideDrop(
+      localPaths: local.length == session.items.length ? local : null,
+      dir: widget.dir,
+      allowMove: session.allowedOperations.contains(DropOperation.move),
+      allowCopy: session.allowedOperations.contains(DropOperation.copy),
+      ctrl: keys.isControlPressed,
+      shift: keys.isShiftPressed,
+      toTrash: widget.toTrash,
     );
   }
+
+  Future<void> _perform(PerformDropEvent event) async {
+    _setHovering(false);
+    final paths = await _droppedPaths(event.session);
+    if (paths.isEmpty || !mounted) return;
+    final copy = event.acceptedOperation == DropOperation.copy;
+    final scope = FinderScope.of(context);
+    if (widget.toTrash) {
+      await scope.actions.trashPaths(paths);
+    } else if (widget.onDrop case final drop?) {
+      await drop(paths, copy: copy);
+    } else if (mounted) {
+      await dropFiles(context, paths, widget.dir, copy: copy);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Outside the window (a tab being reordered is drawn in an overlay)
+    // the zone just renders.
+    if (FinderScope.maybeOf(context)?.nativeDragAndDrop != true) {
+      return widget.builder(context, false);
+    }
+    return DropRegion(
+      formats: const [Formats.fileUri],
+      // Empty space inside the zone (column gaps, folder background)
+      // accepts drops too.
+      hitTestBehavior: HitTestBehavior.translucent,
+      onDropOver: (event) => switch (_decide(event.session)) {
+        DropAction.none => DropOperation.none,
+        DropAction.move => DropOperation.move,
+        DropAction.copy => DropOperation.copy,
+      },
+      onDropEnter: (_) => _setHovering(true),
+      onDropLeave: (_) => _setHovering(false),
+      onDropEnded: (_) => _setHovering(false),
+      onPerformDrop: _perform,
+      child: widget.builder(context, _hovering),
+    );
+  }
+}
+
+/// File paths of a drop: Finder's own items carry their path; other apps
+/// provide file:// URIs (non-file URIs, e.g. web links, are ignored).
+Future<List<String>> _droppedPaths(DropSession session) async {
+  final paths = <String>[];
+  for (final item in session.items) {
+    if (item.localData case final String path) {
+      paths.add(path);
+      continue;
+    }
+    final reader = item.dataReader;
+    if (reader == null || !reader.canProvide(Formats.fileUri)) continue;
+    final uri = Completer<Uri?>();
+    final progress = reader.getValue<Uri>(
+      Formats.fileUri,
+      (value) => uri.complete(value),
+      onError: (_) => uri.complete(null),
+    );
+    if (progress == null) continue;
+    if (await uri.future case final value? when value.isScheme('file')) {
+      paths.add(value.toFilePath());
+    }
+  }
+  return paths;
 }
 
 /// Accent ring + tint marking where a drop would land.
@@ -148,114 +245,11 @@ BoxDecoration dropHighlight(BuildContext context) => BoxDecoration(
 );
 
 class _DragFeedback extends StatelessWidget {
-  const _DragFeedback({required this.entry, required this.count});
+  const _DragFeedback({required this.entry});
 
   final FileEntry entry;
-  final int count;
 
   @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    // The drag overlay has no Material ancestor, hence no default text style
-    // for the icon's extension label.
-    return Material(
-      type: MaterialType.transparency,
-      child: Opacity(
-        opacity: 0.85,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            FileIcon(entry: entry, size: 48, thumbnail: true),
-            if (count > 1)
-              Positioned(
-                right: -6,
-                top: -6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemRed,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '$count',
-                    style: TextStyle(
-                      color: palette.textOnAccent,
-                      fontSize: FinderMetrics.fontSizeSmall,
-                      fontWeight: FontWeight.w700,
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SlopDraggable<T extends Object> extends Draggable<T> {
-  const _SlopDraggable({
-    required super.child,
-    required super.feedback,
-    super.data,
-    super.allowedButtonsFilter,
-    super.dragAnchorStrategy,
-    super.onDragStarted,
-  });
-
-  @override
-  MultiDragGestureRecognizer createRecognizer(
-    GestureMultiDragStartCallback onStart,
-  ) =>
-      _SlopMultiDragRecognizer(allowedButtonsFilter: allowedButtonsFilter)
-        ..onStart = onStart;
-}
-
-/// Like [ImmediateMultiDragGestureRecognizer], but when it wins the gesture
-/// arena by default on pointer-down (no other recognizer competing, as with
-/// our raw-pointer item handlers) it still waits for real movement.
-class _SlopMultiDragRecognizer extends MultiDragGestureRecognizer {
-  _SlopMultiDragRecognizer({super.allowedButtonsFilter})
-    : super(debugOwner: null);
-
-  @override
-  MultiDragPointerState createNewPointerState(PointerDownEvent event) =>
-      _SlopPointerState(event.position, event.kind, gestureSettings);
-
-  @override
-  String get debugDescription => 'slop multidrag';
-}
-
-class _SlopPointerState extends MultiDragPointerState {
-  _SlopPointerState(super.initialPosition, super.kind, super.gestureSettings);
-
-  GestureMultiDragStartCallback? _starter;
-
-  bool get _pastSlop =>
-      (pendingDelta?.distance ?? 0) > computeHitSlop(kind, gestureSettings);
-
-  @override
-  void checkForResolutionAfterMove() {
-    if (!_pastSlop) return;
-    final starter = _starter;
-    if (starter != null) {
-      _starter = null;
-      starter(initialPosition);
-    } else {
-      resolve(GestureDisposition.accepted);
-    }
-  }
-
-  @override
-  void accepted(GestureMultiDragStartCallback starter) {
-    if (_pastSlop) {
-      starter(initialPosition);
-    } else {
-      _starter = starter;
-    }
-  }
+  Widget build(BuildContext context) =>
+      FileIcon(entry: entry, size: 48, thumbnail: true);
 }

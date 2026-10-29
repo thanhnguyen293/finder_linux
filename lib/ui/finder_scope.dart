@@ -20,6 +20,7 @@ class FinderScope extends InheritedWidget {
     required this.contentFocus,
     required this.tabs,
     this.registry,
+    this.nativeDragAndDrop = true,
     required super.child,
   });
 
@@ -37,6 +38,13 @@ class FinderScope extends InheritedWidget {
   /// Finds other Finder windows for "Merge All Windows"; null when the
   /// session has no runtime directory.
   final WindowRegistry? registry;
+
+  /// Whether drag-and-drop widgets talk to the platform plugin.
+  final bool nativeDragAndDrop;
+
+  /// Null outside the window, e.g. in a drag overlay.
+  static FinderScope? maybeOf(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<FinderScope>();
 
   static FinderScope of(BuildContext context) {
     final scope = context.getInheritedWidgetOfExactType<FinderScope>();

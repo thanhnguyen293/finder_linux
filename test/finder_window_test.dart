@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:finder_linux/core/result.dart';
@@ -91,6 +90,7 @@ void main() {
         ),
         initialPath: root.path,
         fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
       ),
     );
     await settleIo(tester);
@@ -162,6 +162,7 @@ void main() {
         ),
         initialPath: root.path,
         fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
       ),
     );
     await settleIo(tester);
@@ -201,6 +202,7 @@ void main() {
         ),
         initialPath: root.path,
         fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
       ),
     );
     await settleIo(tester);
@@ -236,6 +238,7 @@ void main() {
         settings: settings,
         initialPath: root.path,
         fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
       ),
     );
     await settleIo(tester);
@@ -303,6 +306,7 @@ void main() {
         ),
         initialPath: root.path,
         fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
       ),
     );
     await settleIo(tester);
@@ -359,6 +363,7 @@ void main() {
         ),
         initialPath: root.path,
         fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
       ),
     );
     await settleIo(tester);
@@ -402,153 +407,6 @@ void main() {
     await settleIo(tester);
   });
 
-  testWidgets('drag files onto a folder, and across tabs', (tester) async {
-    tester.view.physicalSize = const Size(1200, 800);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    File(p.join(root.path, 'b.txt')).writeAsStringSync('b');
-    Directory(p.join(root.path, 'Other')).createSync();
-    await tester.pumpWidget(
-      FinderApp(
-        places: PlacesService(
-          environment: {'HOME': root.path, 'USER': 'tester'},
-        ),
-        settings: SettingsController(
-          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
-          const FinderSettings(),
-        ),
-        initialPath: root.path,
-        fs: const _NoDiskStatsFs(),
-      ),
-    );
-    await settleIo(tester);
-
-    Future<void> dragTo(Offset from, Offset to, {int lingerMs = 0}) async {
-      final mouse = await tester.startGesture(
-        from,
-        kind: PointerDeviceKind.mouse,
-      );
-      await tester.pump();
-      await mouse.moveBy(const Offset(12, 4));
-      await tester.pump();
-      await mouse.moveTo(to);
-      await tester.pump();
-      if (lingerMs > 0) {
-        await tester.pump(Duration(milliseconds: lingerMs));
-        await tester.pump();
-        await mouse.moveBy(const Offset(1, 1));
-        await tester.pump();
-      }
-      await mouse.up();
-      await tester.pump();
-      await settleIo(tester);
-    }
-
-    // A click alone selects without starting a drag.
-    await tester.tap(find.text('a.txt'));
-    await tester.pump();
-    expect(tester.takeException(), isNull);
-
-    // Drop onto a folder in the icon grid.
-    await dragTo(
-      tester.getCenter(find.text('a.txt').first),
-      tester.getCenter(find.text('Docs')),
-    );
-    expect(File(p.join(root.path, 'Docs', 'a.txt')).existsSync(), isTrue);
-    expect(find.text('a.txt'), findsNothing);
-
-    // Open "Other" in a second tab, go back to the first tab, then drag
-    // b.txt onto the second tab, rest there until it opens, drop inside.
-    final scope = FinderScope.of(tester.element(find.byType(ContentArea)));
-    scope.tabs.open(p.join(root.path, 'Other'), activate: false);
-    await settleIo(tester);
-    final tabTitles = find.descendant(
-      of: find.byType(ReorderableListView),
-      matching: find.byType(Text),
-    );
-    final otherTab = tester.getCenter(tabTitles.at(1));
-    await dragTo(
-      tester.getCenter(find.text('b.txt').first),
-      otherTab,
-      lingerMs: 700,
-    );
-    expect(
-      File(p.join(root.path, 'Other', 'b.txt')).existsSync(),
-      isTrue,
-      reason: 'dropped on the tab: moved into its folder',
-    );
-    expect(scope.tabs.activeIndex, 1, reason: 'resting on a tab opens it');
-    expect(tester.takeException(), isNull);
-
-    await tester.pumpWidget(const SizedBox());
-    await settleIo(tester);
-  });
-
-  testWidgets('column view: drag into the open column and out to a parent', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1200, 800);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    File(p.join(root.path, 'Docs', 'inner.txt')).writeAsStringSync('i');
-    await tester.pumpWidget(
-      FinderApp(
-        places: PlacesService(
-          environment: {'HOME': root.path, 'USER': 'tester'},
-        ),
-        settings: SettingsController(
-          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
-          const FinderSettings(viewMode: ViewMode.columns),
-        ),
-        initialPath: root.path,
-        fs: const _NoDiskStatsFs(),
-      ),
-    );
-    await settleIo(tester);
-    final b = FinderScope.of(tester.element(find.byType(ContentArea))).browser;
-
-    Future<void> drag(Finder from, Offset to) async {
-      final mouse = await tester.startGesture(
-        tester.getCenter(from),
-        kind: PointerDeviceKind.mouse,
-      );
-      await tester.pump();
-      await mouse.moveBy(const Offset(12, 4));
-      await tester.pump();
-      await mouse.moveTo(to);
-      await tester.pump();
-      await mouse.up();
-      await tester.pump();
-      await settleIo(tester);
-    }
-
-    // Select Docs: its contents open in the next column.
-    await tester.tap(find.widgetWithText(EntryGestures, 'Docs'));
-    await settleIo(tester);
-    expect(find.text('inner.txt'), findsOneWidget);
-
-    // Pressing a.txt to drag it must keep Docs selected (its column stays),
-    // and dropping on that column's empty space moves the file into Docs.
-    final docsColumnEmpty =
-        tester.getCenter(find.text('inner.txt')) + const Offset(0, 300);
-    await drag(find.text('a.txt'), docsColumnEmpty);
-    expect(File(p.join(root.path, 'Docs', 'a.txt')).existsSync(), isTrue);
-
-    // Go into Docs, then drag inner.txt back out onto the parent column.
-    // Not awaited: its directory read only progresses inside settleIo.
-    unawaited(b.navigate(p.join(root.path, 'Docs')));
-    await settleIo(tester);
-    final parentColumnEmpty =
-        tester.getCenter(find.widgetWithText(EntryGestures, 'Docs')) +
-        const Offset(0, 300);
-    await drag(find.text('inner.txt'), parentColumnEmpty);
-    expect(File(p.join(root.path, 'inner.txt')).existsSync(), isTrue);
-    expect(tester.takeException(), isNull);
-
-    await tester.pumpWidget(const SizedBox());
-    await settleIo(tester);
-  });
-
   testWidgets('display settings: text size, extensions, bars, Enter', (
     tester,
   ) async {
@@ -573,6 +431,7 @@ void main() {
         ),
         initialPath: root.path,
         fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
       ),
     );
     await settleIo(tester);
@@ -592,6 +451,51 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.byType(RenameField), findsOneWidget, reason: 'Enter renames');
+
+    await tester.pumpWidget(const SizedBox());
+    await settleIo(tester);
+  });
+
+  testWidgets('column view: pressing an item keeps the open column', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    File(p.join(root.path, 'Docs', 'inner.txt')).writeAsStringSync('i');
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(viewMode: ViewMode.columns),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
+      ),
+    );
+    await settleIo(tester);
+    final b = FinderScope.of(tester.element(find.byType(ContentArea))).browser;
+
+    await tester.tap(find.widgetWithText(EntryGestures, 'Docs'));
+    await settleIo(tester);
+    expect(find.text('inner.txt'), findsOneWidget);
+
+    // Press a.txt as if to drag it: Docs stays selected, its column open,
+    // so the file can be dropped there. Releasing without a drag selects.
+    final press = await tester.startGesture(
+      tester.getCenter(find.text('a.txt')),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump();
+    expect(b.selection, {p.join(root.path, 'Docs')});
+    expect(find.text('inner.txt'), findsOneWidget);
+    await press.up();
+    await settleIo(tester);
+    expect(b.selection, {p.join(root.path, 'a.txt')});
 
     await tester.pumpWidget(const SizedBox());
     await settleIo(tester);

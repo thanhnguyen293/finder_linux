@@ -37,9 +37,7 @@ class _ContentAreaState extends State<ContentArea> {
             listenable: scope.browser,
             builder: (context, _) => FolderDropTarget(
               dir: scope.browser.path,
-              onDrop: scope.browser.isTrash
-                  ? (payload) => scope.actions.trashPaths(payload.paths)
-                  : null,
+              toTrash: scope.browser.isTrash,
               builder: (context, hovering) => DecoratedBox(
                 position: DecorationPosition.foreground,
                 decoration: hovering

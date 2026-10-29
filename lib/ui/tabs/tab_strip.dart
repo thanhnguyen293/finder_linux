@@ -68,10 +68,11 @@ class TabStrip extends StatelessWidget {
                           dir: tabs.tabs[i].browser.path,
                           // Built here because the tab itself can render
                           // outside the window scope while being reordered.
-                          onDrop: (payload) => dropFiles(
+                          onDrop: (paths, {required copy}) => dropFiles(
                             context,
-                            payload,
+                            paths,
                             tabs.tabs[i].browser.path,
+                            copy: copy,
                           ),
                           // Spring-loaded: rest files on a tab to open it,
                           // then drop inside one of its folders.
@@ -132,7 +133,56 @@ class _HorizontalDragStart extends ReorderableDragStartListener {
 
   @override
   MultiDragGestureRecognizer createRecognizer() =>
-      HorizontalMultiDragGestureRecognizer(debugOwner: this);
+      _HorizontalSlopDragRecognizer(debugOwner: this);
+}
+
+/// Reorders only after a real horizontal move. The stock horizontal
+/// recognizer still starts at once when it is the only one in the gesture
+/// arena (our tabs use raw pointer listeners), which turned every click on
+/// a tab into a reorder drag.
+class _HorizontalSlopDragRecognizer extends MultiDragGestureRecognizer {
+  _HorizontalSlopDragRecognizer({super.debugOwner});
+
+  @override
+  MultiDragPointerState createNewPointerState(PointerDownEvent event) =>
+      _HorizontalSlopState(event.position, event.kind, gestureSettings);
+
+  @override
+  String get debugDescription => 'horizontal slop multidrag';
+}
+
+class _HorizontalSlopState extends MultiDragPointerState {
+  _HorizontalSlopState(
+    super.initialPosition,
+    super.kind,
+    super.gestureSettings,
+  );
+
+  GestureMultiDragStartCallback? _starter;
+
+  bool get _pastSlop =>
+      (pendingDelta?.dx.abs() ?? 0) > computeHitSlop(kind, gestureSettings);
+
+  @override
+  void checkForResolutionAfterMove() {
+    if (!_pastSlop) return;
+    final starter = _starter;
+    if (starter != null) {
+      _starter = null;
+      starter(initialPosition);
+    } else {
+      resolve(GestureDisposition.accepted);
+    }
+  }
+
+  @override
+  void accepted(GestureMultiDragStartCallback starter) {
+    if (_pastSlop) {
+      starter(initialPosition);
+    } else {
+      _starter = starter;
+    }
+  }
 }
 
 /// One tab. Everything it shows or does is passed in: while dragged it is

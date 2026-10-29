@@ -34,11 +34,13 @@ class FinderWindow extends StatefulWidget {
     required this.settings,
     required this.initialPath,
     this.initialSelection,
+    this.nativeDragAndDrop = true,
   });
 
   final FileSystemService fs;
   final PlacesService places;
   final SettingsController settings;
+  final bool nativeDragAndDrop;
   final String initialPath;
   final String? initialSelection;
 
@@ -191,6 +193,7 @@ class _FinderWindowState extends State<FinderWindow> {
           contentFocus: tab.contentFocus,
           tabs: _tabs,
           registry: _registry,
+          nativeDragAndDrop: widget.nativeDragAndDrop,
           child: Builder(
             builder: (context) => Focus(
               onKeyEvent: (_, event) => handleGlobalKey(

@@ -201,6 +201,32 @@ void main() {
       },
     );
 
+    test('dropInto moves, or copies with numbered names', () async {
+      final actions = FileActions(c);
+      await actions.dropInto(
+        [at('a.txt')],
+        at('Docs'),
+        copy: false,
+        copySuffix: 'copy',
+      );
+      expect(File(p.join(at('Docs'), 'a.txt')).existsSync(), isTrue);
+      expect(File(at('a.txt')).existsSync(), isFalse);
+      await actions.dropInto(
+        [at('b.txt')],
+        at('Docs'),
+        copy: true,
+        copySuffix: 'copy',
+      );
+      await actions.dropInto(
+        [at('b.txt')],
+        at('Docs'),
+        copy: true,
+        copySuffix: 'copy',
+      );
+      expect(File(at('b.txt')).existsSync(), isTrue, reason: 'copy keeps it');
+      expect(File(p.join(at('Docs'), 'b 2.txt')).existsSync(), isTrue);
+    });
+
     test('cut + paste moves items and consumes the clipboard', () async {
       final actions = FileActions(c);
       c.select(at('a.txt'));

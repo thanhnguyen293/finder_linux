@@ -14,7 +14,8 @@ Trình quản lý file phong cách macOS Finder cho Ubuntu (GNOME), viết bằn
 - **Tab kiểu Chrome**: kéo đổi thứ tự, click chuột giữa để đóng, menu chuột phải; mỗi tab có lịch sử riêng.
   **Gộp tất cả cửa sổ** thành một cửa sổ nhiều tab (Ctrl+Shift+M).
 - **Kéo-thả file** vào thư mục, cột, sidebar, path bar hoặc tab khác (giữ trên tab để mở nó);
-  giữ Ctrl khi thả để sao chép, thả vào Thùng rác để xóa.
+  giữ Ctrl khi thả để sao chép, thả vào Thùng rác để xóa. Kéo-thả cả **với ứng dụng khác**
+  (Nautilus, trình duyệt, Telegram…): kéo vào Finder mặc định sao chép, giữ Shift để di chuyển.
 - **Settings** (Ctrl+,): thư mục mở mặc định, mở thư mục trong tab thay vì cửa sổ mới, kiểu xem,
   nhóm/sắp xếp, ngôn ngữ; **Hiển thị**: sáng/tối, màu nhấn (8 màu macOS), cỡ chữ, cỡ biểu tượng,
   hiện path bar / thanh trạng thái / phần mở rộng tên tệp; mục trên sidebar; tệp ẩn, thumbnail,
@@ -88,7 +89,7 @@ flutter analyze && flutter test
 
 ## Giới hạn hiện tại
 
-- Chưa kéo-thả được với ứng dụng khác (cần phần native GTK DnD); chưa kéo tab ra thành cửa sổ riêng.
+- Chưa kéo tab ra thành cửa sổ riêng.
 - Tìm kiếm chỉ lọc thư mục hiện tại (chưa tìm đệ quy).
 - Dock/"Show in folder" của trình duyệt vẫn gọi Nautilus qua D-Bus `org.freedesktop.FileManager1`.
 - Đổi Settings không tự cập nhật các cửa sổ khác đang mở (mỗi cửa sổ là một tiến trình).
