@@ -35,6 +35,14 @@ void main() {
       foldersFirst: false,
       showThumbnails: false,
       warnBeforeEmptyingTrash: false,
+      openFoldersInTabs: false,
+      accent: AccentColor.green,
+      textSize: 16,
+      iconSize: 96,
+      showPathBar: false,
+      showStatusBar: false,
+      showExtensions: false,
+      enterRenames: true,
     );
     await store.save(settings);
     expect(await store.load(), settings);
@@ -54,6 +62,11 @@ void main() {
     expect(loaded.showHidden, isFalse);
     expect(loaded.hiddenPlaces, {PlaceKind.trash});
     expect(loaded.languageCode, isNull);
+
+    store.file.writeAsStringSync('{"textSize": 99, "accent": "teal"}');
+    final odd = await store.load();
+    expect(odd.textSize, 13, reason: 'only offered sizes are accepted');
+    expect(odd.accent, AccentColor.blue);
   });
 
   test('copyWith can reset the language to follow the system', () {

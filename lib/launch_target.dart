@@ -8,8 +8,9 @@ import 'package:path/path.dart' as p;
   List<String> args, {
   required String home,
 }) {
-  if (args.isEmpty) return (home, null);
-  final raw = args.first;
+  final paths = args.where((a) => !a.startsWith('--')).toList();
+  if (paths.isEmpty) return (home, null);
+  final raw = paths.first;
   final path = p.normalize(
     raw.startsWith('file://') ? Uri.parse(raw).toFilePath() : p.absolute(raw),
   );

@@ -166,12 +166,12 @@ class _ColumnList extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListView.builder(
     padding: const EdgeInsets.symmetric(vertical: 4),
-    itemExtent: FinderMetrics.listRowHeight,
+    itemExtent: context.scaled(FinderMetrics.listRowHeight),
     itemCount: rows.length,
     itemBuilder: (context, i) => switch (rows[i].item) {
       final GroupKey key => GroupHeader(
         label: groupLabel(context, key),
-        height: FinderMetrics.listRowHeight,
+        height: context.scaled(FinderMetrics.listRowHeight),
         inset: 10,
       ),
       final FileEntry e => row(e),
@@ -272,7 +272,7 @@ class _ColumnRow extends StatelessWidget {
               child: renaming
                   ? RenameField(name: entry.name)
                   : Text(
-                      entry.name,
+                      displayName(context, entry),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

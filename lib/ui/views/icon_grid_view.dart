@@ -6,6 +6,7 @@ import '../../models/file_entry.dart';
 import '../../models/grouping.dart';
 import '../../theme/finder_theme.dart';
 import '../finder_scope.dart';
+import '../settings_scope.dart';
 import '../formatting.dart';
 import '../widgets/file_icon.dart';
 import '../widgets/rename_field.dart';
@@ -27,6 +28,7 @@ class IconGridView extends StatefulWidget {
 class _IconGridViewState extends State<IconGridView> {
   final _scroll = ScrollController();
   String? _revealed;
+  double _tileHeight = FinderMetrics.iconTileHeight;
 
   @override
   void dispose() {
@@ -41,9 +43,13 @@ class _IconGridViewState extends State<IconGridView> {
       listenable: Listenable.merge([scope.browser, scope.contentFocus]),
       builder: (context, _) => LayoutBuilder(
         builder: (context, box) {
+          final iconSize = SettingsScope.of(context).iconSize.toDouble();
+          // Room for the icon plus two lines of (scaled) label.
+          final tileWidth = iconSize + 40;
+          _tileHeight = iconSize + 24 + context.scaled(32);
           final columns = math.max(
             1,
-            (box.maxWidth - 2 * _gridPadding) ~/ FinderMetrics.iconTileWidth,
+            (box.maxWidth - 2 * _gridPadding) ~/ tileWidth,
           );
           widget.onColumnsChanged(columns);
           final placeholder = folderPlaceholder(context);
@@ -74,13 +80,14 @@ class _IconGridViewState extends State<IconGridView> {
                       SliverGrid.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: columns,
-                          mainAxisExtent: FinderMetrics.iconTileHeight,
+                          mainAxisExtent: _tileHeight,
                         ),
                         itemCount: section.entries.length,
                         itemBuilder: (context, i) {
                           final e = section.entries[i];
                           return _IconTile(
                             entry: e,
+                            iconSize: iconSize,
                             selected: b.isSelected(e.path),
                             focused: scope.contentFocus.hasFocus,
                             renaming: b.renamingPath == e.path,
@@ -108,15 +115,13 @@ class _IconGridViewState extends State<IconGridView> {
       if (section.key != null) top += _headerHeight;
       final index = section.entries.indexWhere((e) => e.path == cursor);
       if (index >= 0) {
-        top += (index ~/ columns) * FinderMetrics.iconTileHeight;
+        top += (index ~/ columns) * _tileHeight;
         WidgetsBinding.instance.addPostFrameCallback(
-          (_) => revealRange(_scroll, top, FinderMetrics.iconTileHeight),
+          (_) => revealRange(_scroll, top, _tileHeight),
         );
         return;
       }
-      top +=
-          (section.entries.length / columns).ceil() *
-          FinderMetrics.iconTileHeight;
+      top += (section.entries.length / columns).ceil() * _tileHeight;
     }
   }
 }
@@ -127,12 +132,14 @@ typedef _Section = ({GroupKey? key, List<FileEntry> entries});
 class _IconTile extends StatelessWidget {
   const _IconTile({
     required this.entry,
+    required this.iconSize,
     required this.selected,
     required this.focused,
     required this.renaming,
   });
 
   final FileEntry entry;
+  final double iconSize;
   final bool selected;
   final bool focused;
   final bool renaming;
@@ -155,8 +162,8 @@ class _IconTile extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                width: FinderMetrics.iconSize + 12,
-                height: FinderMetrics.iconSize + 8,
+                width: iconSize + 12,
+                height: iconSize + 8,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: selected ? palette.controlHover : null,
@@ -164,11 +171,7 @@ class _IconTile extends StatelessWidget {
                     FinderMetrics.radiusSmall,
                   ),
                 ),
-                child: FileIcon(
-                  entry: entry,
-                  size: FinderMetrics.iconSize,
-                  thumbnail: true,
-                ),
+                child: FileIcon(entry: entry, size: iconSize, thumbnail: true),
               ),
               const SizedBox(height: 4),
               if (renaming)
@@ -184,7 +187,7 @@ class _IconTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    entry.name,
+                    displayName(context, entry),
                     maxLines: 2,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,

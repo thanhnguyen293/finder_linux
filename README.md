@@ -15,8 +15,10 @@ Trình quản lý file phong cách macOS Finder cho Ubuntu (GNOME), viết bằn
   **Gộp tất cả cửa sổ** thành một cửa sổ nhiều tab (Ctrl+Shift+M).
 - **Kéo-thả file** vào thư mục, cột, sidebar, path bar hoặc tab khác (giữ trên tab để mở nó);
   giữ Ctrl khi thả để sao chép, thả vào Thùng rác để xóa.
-- **Settings** (Ctrl+,): thư mục mở mặc định, kiểu xem, nhóm/sắp xếp, giao diện sáng/tối, ngôn ngữ,
-  mục hiện trên sidebar, tệp ẩn, thumbnail, cảnh báo dọn Thùng rác.
+- **Settings** (Ctrl+,): thư mục mở mặc định, mở thư mục trong tab thay vì cửa sổ mới, kiểu xem,
+  nhóm/sắp xếp, ngôn ngữ; **Hiển thị**: sáng/tối, màu nhấn (8 màu macOS), cỡ chữ, cỡ biểu tượng,
+  hiện path bar / thanh trạng thái / phần mở rộng tên tệp; mục trên sidebar; tệp ẩn, thumbnail,
+  cảnh báo dọn Thùng rác, Enter để đổi tên kiểu macOS.
 - **Sidebar** đọc thư mục XDG và bookmarks GTK (dùng chung với Nautilus); ổ USB kèm nút Eject;
   Trash chuẩn freedesktop (Put Back, Empty Trash).
 - **Thao tác file**: New Folder, Rename tại chỗ, Copy/Cut/Paste, Duplicate, Move to Trash,

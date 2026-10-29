@@ -895,6 +895,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No other Finder windows to merge} =1{Merged 1 window} other{Merged {count} windows}}'**
   String mergedWindows(int count);
+
+  /// No description provided for @settingsDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get settingsDisplay;
+
+  /// No description provided for @settingsOpenFoldersInTabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Open folders in tabs instead of new windows'**
+  String get settingsOpenFoldersInTabs;
+
+  /// No description provided for @settingsAccentColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent color:'**
+  String get settingsAccentColor;
+
+  /// No description provided for @settingsTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size:'**
+  String get settingsTextSize;
+
+  /// No description provided for @settingsIconSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon size:'**
+  String get settingsIconSize;
+
+  /// No description provided for @settingsShowPathBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Show path bar'**
+  String get settingsShowPathBar;
+
+  /// No description provided for @settingsShowStatusBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Show status bar'**
+  String get settingsShowStatusBar;
+
+  /// No description provided for @settingsShowExtensions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all filename extensions'**
+  String get settingsShowExtensions;
+
+  /// No description provided for @settingsEnterRenames.
+  ///
+  /// In en, this message translates to:
+  /// **'Press Enter to rename (macOS style)'**
+  String get settingsEnterRenames;
+
+  /// No description provided for @accentBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get accentBlue;
+
+  /// No description provided for @accentPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get accentPurple;
+
+  /// No description provided for @accentPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get accentPink;
+
+  /// No description provided for @accentRed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get accentRed;
+
+  /// No description provided for @accentOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get accentOrange;
+
+  /// No description provided for @accentYellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get accentYellow;
+
+  /// No description provided for @accentGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get accentGreen;
+
+  /// No description provided for @accentGraphite.
+  ///
+  /// In en, this message translates to:
+  /// **'Graphite'**
+  String get accentGraphite;
 }
 
 class _AppLocalizationsDelegate

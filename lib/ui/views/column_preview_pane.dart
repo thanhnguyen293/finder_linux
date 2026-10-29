@@ -35,7 +35,7 @@ class ColumnPreviewPane extends StatelessWidget {
             FileIcon(entry: entry, size: 160, thumbnail: true),
             const SizedBox(height: 8),
             Text(
-              entry.name,
+              displayName(context, entry),
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,

@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/result.dart';
+import '../../l10n/app_localizations.dart';
+import '../../models/finder_settings.dart';
+import '../formatting.dart';
+import '../settings_scope.dart';
 import '../../theme/finder_theme.dart';
 import '../widgets/finder_menu.dart';
 
@@ -140,4 +145,16 @@ class CheckRow extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Saves [next]; a failed write is reported but the change stays applied.
+Future<void> saveSettings(BuildContext context, FinderSettings next) async {
+  final result = await SettingsScope.read(context).update(next);
+  if (result case Err(:final failure) when context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(failureMessage(AppLocalizations.of(context), failure)),
+      ),
+    );
+  }
 }

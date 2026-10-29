@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/finder_theme.dart';
 import '../widgets/hover_button.dart';
+import 'settings_display_page.dart';
 import 'settings_pages.dart';
 
 /// Finder ▸ Settings: a small window with icon tabs. Changes apply as soon
@@ -14,7 +15,7 @@ Future<void> showFinderSettings(BuildContext context) => showDialog<void>(
   builder: (_) => const _SettingsWindow(),
 );
 
-enum _Tab { general, sidebar, advanced }
+enum _Tab { general, display, sidebar, advanced }
 
 class _SettingsWindow extends StatefulWidget {
   const _SettingsWindow();
@@ -32,6 +33,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
     final palette = context.palette;
     final tabs = {
       _Tab.general: (CupertinoIcons.gear_alt, l10n.settingsGeneral),
+      _Tab.display: (CupertinoIcons.textformat_size, l10n.settingsDisplay),
       _Tab.sidebar: (CupertinoIcons.sidebar_left, l10n.settingsSidebar),
       _Tab.advanced: (
         CupertinoIcons.slider_horizontal_3,
@@ -41,7 +43,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
     return Dialog(
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
-        width: 520,
+        width: 580,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -98,6 +100,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
                 index: _tab.index,
                 children: const [
                   GeneralSettingsPage(),
+                  DisplaySettingsPage(),
                   SidebarSettingsPage(),
                   AdvancedSettingsPage(),
                 ],

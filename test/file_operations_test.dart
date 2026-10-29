@@ -217,6 +217,10 @@ void main() {
   group('resolveLaunchTarget', () {
     test('handles folders, files, file URIs and missing paths', () {
       expect(resolveLaunchTarget([], home: '/h'), ('/h', null));
+      expect(resolveLaunchTarget(['--new-window', root.path], home: '/h'), (
+        root.path,
+        null,
+      ));
       expect(resolveLaunchTarget([root.path], home: '/h'), (root.path, null));
       expect(
         resolveLaunchTarget([Uri.file(at('a.txt')).toString()], home: '/h'),

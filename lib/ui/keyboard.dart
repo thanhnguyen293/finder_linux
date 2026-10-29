@@ -5,6 +5,7 @@ import '../models/place.dart';
 import '../models/sort_spec.dart';
 import 'commands.dart';
 import 'finder_scope.dart';
+import 'settings_scope.dart';
 
 const _typeAheadReset = Duration(milliseconds: 900);
 
@@ -74,8 +75,10 @@ class ViewKeyHandler {
       LogicalKeyboardKey.arrowLeft when b.viewMode == ViewMode.columns => run(
         b.up,
       ),
-      LogicalKeyboardKey.enter ||
-      LogicalKeyboardKey.numpadEnter => run(scope.actions.openSelection),
+      LogicalKeyboardKey.enter || LogicalKeyboardKey.numpadEnter =>
+        SettingsScope.read(context).value.enterRenames
+            ? run(b.beginRename)
+            : run(scope.actions.openSelection),
       LogicalKeyboardKey.f2 => run(b.beginRename),
       LogicalKeyboardKey.space => run(cmd.quickLook),
       LogicalKeyboardKey.delete => run(cmd.delete),

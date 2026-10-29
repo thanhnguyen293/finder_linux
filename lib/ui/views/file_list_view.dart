@@ -51,12 +51,12 @@ class _FileListViewState extends State<FileListView> {
                   placeholder ??
                   ListView.builder(
                     controller: _scroll,
-                    itemExtent: FinderMetrics.listRowHeight,
+                    itemExtent: context.scaled(FinderMetrics.listRowHeight),
                     itemCount: rows.length,
                     itemBuilder: (context, i) => switch (rows[i]) {
                       (item: final GroupKey key, stripe: _) => GroupHeader(
                         label: groupLabel(context, key),
-                        height: FinderMetrics.listRowHeight,
+                        height: context.scaled(FinderMetrics.listRowHeight),
                         inset: _rowInset,
                       ),
                       (item: final FileEntry e, :final stripe) => _Row(
@@ -87,8 +87,8 @@ class _FileListViewState extends State<FileListView> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => revealRange(
         _scroll,
-        index * FinderMetrics.listRowHeight,
-        FinderMetrics.listRowHeight,
+        index * context.scaled(FinderMetrics.listRowHeight),
+        context.scaled(FinderMetrics.listRowHeight),
       ),
     );
   }
@@ -104,7 +104,7 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final palette = context.palette;
     return Container(
-      height: FinderMetrics.listHeaderHeight,
+      height: context.scaled(FinderMetrics.listHeaderHeight),
       padding: const EdgeInsets.symmetric(horizontal: _rowInset),
       decoration: BoxDecoration(
         border: Border(
@@ -257,7 +257,7 @@ class _Row extends StatelessWidget {
                         child: RenameField(name: entry.name),
                       )
                     : Text(
-                        entry.name,
+                        displayName(context, entry),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: style(primary),

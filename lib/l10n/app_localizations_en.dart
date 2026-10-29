@@ -465,4 +465,56 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsDisplay => 'Display';
+
+  @override
+  String get settingsOpenFoldersInTabs =>
+      'Open folders in tabs instead of new windows';
+
+  @override
+  String get settingsAccentColor => 'Accent color:';
+
+  @override
+  String get settingsTextSize => 'Text size:';
+
+  @override
+  String get settingsIconSize => 'Icon size:';
+
+  @override
+  String get settingsShowPathBar => 'Show path bar';
+
+  @override
+  String get settingsShowStatusBar => 'Show status bar';
+
+  @override
+  String get settingsShowExtensions => 'Show all filename extensions';
+
+  @override
+  String get settingsEnterRenames => 'Press Enter to rename (macOS style)';
+
+  @override
+  String get accentBlue => 'Blue';
+
+  @override
+  String get accentPurple => 'Purple';
+
+  @override
+  String get accentPink => 'Pink';
+
+  @override
+  String get accentRed => 'Red';
+
+  @override
+  String get accentOrange => 'Orange';
+
+  @override
+  String get accentYellow => 'Yellow';
+
+  @override
+  String get accentGreen => 'Green';
+
+  @override
+  String get accentGraphite => 'Graphite';
 }

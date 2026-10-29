@@ -124,4 +124,38 @@ void main() {
       await b.dispose();
     });
   });
+
+  group('open folders in tabs', () {
+    test('a new launch hands its folder to an open window', () async {
+      final runtime = p.join(root.path, 'run2');
+      String? opened;
+      String? selected;
+      final window = WindowRegistry(
+        runtimeDir: runtime,
+        id: 'w',
+        describeTabs: () => const [],
+        surrender: () {},
+        openInTab: (path, select) {
+          opened = path;
+          selected = select;
+        },
+      );
+      expect(
+        await WindowRegistry.sendOpen(runtimeDir: runtime, path: '/x'),
+        isFalse,
+        reason: 'no window yet: the launch opens its own',
+      );
+      await window.start();
+      final handed = await WindowRegistry.sendOpen(
+        runtimeDir: runtime,
+        path: '/srv/data',
+        select: '/srv/data/a.txt',
+      );
+      expect(handed, isTrue);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(opened, '/srv/data');
+      expect(selected, '/srv/data/a.txt');
+      await window.dispose();
+    });
+  });
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:finder_linux/core/result.dart';
 import 'package:finder_linux/main.dart';
+import 'package:finder_linux/ui/widgets/bottom_bars.dart';
 import 'package:finder_linux/ui/views/view_common.dart';
 import 'package:finder_linux/ui/finder_scope.dart';
 import 'package:finder_linux/ui/content_area.dart';
@@ -543,6 +544,54 @@ void main() {
     await drag(find.text('inner.txt'), parentColumnEmpty);
     expect(File(p.join(root.path, 'inner.txt')).existsSync(), isTrue);
     expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox());
+    await settleIo(tester);
+  });
+
+  testWidgets('display settings: text size, extensions, bars, Enter', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(
+            viewMode: ViewMode.list,
+            textSize: 16,
+            showExtensions: false,
+            showPathBar: false,
+            showStatusBar: false,
+            enterRenames: true,
+          ),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+      ),
+    );
+    await settleIo(tester);
+
+    expect(find.text('a'), findsOneWidget, reason: 'extension hidden');
+    expect(find.text('a.txt'), findsNothing);
+    final row = tester.getSize(
+      find.ancestor(of: find.text('a'), matching: find.byType(EntryGestures)),
+    );
+    expect(row.height, closeTo(24 * 16 / 13, 0.5), reason: 'rows grow');
+    expect(find.byType(PathBar), findsNothing);
+    expect(find.byType(StatusBar), findsNothing);
+
+    await tester.tap(find.text('a'));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(RenameField), findsOneWidget, reason: 'Enter renames');
 
     await tester.pumpWidget(const SizedBox());
     await settleIo(tester);

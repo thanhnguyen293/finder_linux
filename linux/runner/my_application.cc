@@ -109,6 +109,8 @@ static void window_method_call_cb(FlMethodChannel* channel,
     } else {
       gtk_window_maximize(self->window);
     }
+  } else if (strcmp(method, "present") == 0) {
+    gtk_window_present(self->window);
   } else if (strcmp(method, "close") == 0) {
     gtk_window_close(self->window);
   } else if (strcmp(method, "setTitle") == 0) {

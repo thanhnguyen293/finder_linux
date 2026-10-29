@@ -19,6 +19,7 @@ import 'content_area.dart';
 import 'finder_scope.dart';
 import 'formatting.dart';
 import 'keyboard.dart';
+import 'settings_scope.dart';
 import 'sidebar/finder_sidebar.dart';
 import 'toolbar/finder_toolbar.dart';
 import 'widgets/bottom_bars.dart';
@@ -98,6 +99,10 @@ class _FinderWindowState extends State<FinderWindow> {
           ),
       ],
       surrender: _surrender,
+      openInTab: (path, select) {
+        _tabs.open(path, select: select);
+        _window.present();
+      },
     );
     _registry = registry;
     // Without the socket this window just can't take part in merging.
@@ -174,6 +179,7 @@ class _FinderWindowState extends State<FinderWindow> {
       listenable: _tabs,
       builder: (context, _) {
         final tab = _tabs.active;
+        final prefs = SettingsScope.of(context);
         // Keyed by tab so switching tabs rebuilds the views against the new
         // tab's controller; the tab strip itself stays outside.
         final tabKey = ValueKey(tab.id);
@@ -216,8 +222,8 @@ class _FinderWindowState extends State<FinderWindow> {
                                   children: [
                                     FinderToolbar(searchFocus: tab.searchFocus),
                                     const Expanded(child: ContentArea()),
-                                    const PathBar(),
-                                    const StatusBar(),
+                                    if (prefs.showPathBar) const PathBar(),
+                                    if (prefs.showStatusBar) const StatusBar(),
                                   ],
                                 ),
                               ),

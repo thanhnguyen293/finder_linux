@@ -147,7 +147,7 @@ class _PlaceRowState extends State<_PlaceRow> {
                 ? (payload) => scope.actions.trashPaths(payload.paths)
                 : null,
             builder: (context, hovering) => Container(
-              height: FinderMetrics.sidebarRowHeight,
+              height: context.scaled(FinderMetrics.sidebarRowHeight),
               padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: hovering
                   ? dropHighlight(context)

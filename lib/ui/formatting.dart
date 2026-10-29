@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
 
 import '../core/result.dart';
 import '../l10n/app_localizations.dart';
 import '../models/file_entry.dart';
 import '../models/grouping.dart';
 import '../models/place.dart';
+import 'settings_scope.dart';
 
 /// Decimal units, as Finder uses (1 KB = 1000 bytes).
 String formatBytes(int bytes) {
@@ -104,3 +106,13 @@ String placeName(AppLocalizations l10n, PlaceKind kind) => switch (kind) {
   PlaceKind.volume => l10n.settingsExternalDrives,
   PlaceKind.trash => l10n.placeTrash,
 };
+
+/// Name as shown in views: hides the extension when the user turned off
+/// "Show all filename extensions" (folders and dotfiles keep full names).
+String displayName(BuildContext context, FileEntry entry) {
+  if (SettingsScope.of(context).showExtensions || entry.isDirectory) {
+    return entry.name;
+  }
+  final stem = p.basenameWithoutExtension(entry.name);
+  return stem.isEmpty ? entry.name : stem;
+}

@@ -22,6 +22,9 @@ class WindowChannel {
   Future<void> minimize() => _invoke('minimize');
   Future<void> toggleMaximize() => _invoke('toggleMaximize');
   Future<void> close() => _invoke('close');
+
+  /// Raises the window (a folder was opened into it from another app).
+  Future<void> present() => _invoke('present');
   Future<void> setTitle(String title) => _invoke('setTitle', title);
 
   void dispose() {

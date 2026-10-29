@@ -460,4 +460,56 @@ class AppLocalizationsVi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsDisplay => 'Hiển thị';
+
+  @override
+  String get settingsOpenFoldersInTabs =>
+      'Mở thư mục trong tab thay vì cửa sổ mới';
+
+  @override
+  String get settingsAccentColor => 'Màu nhấn:';
+
+  @override
+  String get settingsTextSize => 'Cỡ chữ:';
+
+  @override
+  String get settingsIconSize => 'Cỡ biểu tượng:';
+
+  @override
+  String get settingsShowPathBar => 'Hiện thanh đường dẫn';
+
+  @override
+  String get settingsShowStatusBar => 'Hiện thanh trạng thái';
+
+  @override
+  String get settingsShowExtensions => 'Hiện tất cả phần mở rộng tên tệp';
+
+  @override
+  String get settingsEnterRenames => 'Nhấn Enter để đổi tên (kiểu macOS)';
+
+  @override
+  String get accentBlue => 'Xanh dương';
+
+  @override
+  String get accentPurple => 'Tím';
+
+  @override
+  String get accentPink => 'Hồng';
+
+  @override
+  String get accentRed => 'Đỏ';
+
+  @override
+  String get accentOrange => 'Cam';
+
+  @override
+  String get accentYellow => 'Vàng';
+
+  @override
+  String get accentGreen => 'Xanh lá';
+
+  @override
+  String get accentGraphite => 'Than chì';
 }

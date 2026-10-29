@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/result.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/finder_settings.dart';
 import '../../models/place.dart';
@@ -26,18 +25,6 @@ const _sidebarKinds = [
   PlaceKind.trash,
 ];
 
-/// Saves [next]; a failed write is reported but the change stays applied.
-Future<void> _save(BuildContext context, FinderSettings next) async {
-  final result = await SettingsScope.read(context).update(next);
-  if (result case Err(:final failure) when context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(failureMessage(AppLocalizations.of(context), failure)),
-      ),
-    );
-  }
-}
-
 class GeneralSettingsPage extends StatelessWidget {
   const GeneralSettingsPage({super.key});
 
@@ -55,7 +42,17 @@ class GeneralSettingsPage extends StatelessWidget {
             options: {
               for (final k in newWindowFolderChoices) k: placeName(l10n, k),
             },
-            onChanged: (v) => _save(context, s.copyWith(newWindowFolder: v)),
+            onChanged: (v) =>
+                saveSettings(context, s.copyWith(newWindowFolder: v)),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 170, bottom: 6),
+          child: CheckRow(
+            label: l10n.settingsOpenFoldersInTabs,
+            value: s.openFoldersInTabs,
+            onChanged: (v) =>
+                saveSettings(context, s.copyWith(openFoldersInTabs: v)),
           ),
         ),
         SettingRow(
@@ -67,7 +64,7 @@ class GeneralSettingsPage extends StatelessWidget {
               ViewMode.list: l10n.viewList,
               ViewMode.columns: l10n.viewColumns,
             },
-            onChanged: (v) => _save(context, s.copyWith(viewMode: v)),
+            onChanged: (v) => saveSettings(context, s.copyWith(viewMode: v)),
           ),
         ),
         SettingRow(
@@ -80,7 +77,7 @@ class GeneralSettingsPage extends StatelessWidget {
               GroupBy.modified: l10n.columnModified,
               GroupBy.size: l10n.columnSize,
             },
-            onChanged: (v) => _save(context, s.copyWith(groupBy: v)),
+            onChanged: (v) => saveSettings(context, s.copyWith(groupBy: v)),
           ),
         ),
         SettingRow(
@@ -93,22 +90,10 @@ class GeneralSettingsPage extends StatelessWidget {
               SortField.modified: l10n.columnModified,
               SortField.size: l10n.columnSize,
             },
-            onChanged: (v) => _save(context, s.copyWith(sortField: v)),
+            onChanged: (v) => saveSettings(context, s.copyWith(sortField: v)),
           ),
         ),
         const SizedBox(height: 12),
-        SettingRow(
-          label: l10n.settingsAppearance,
-          child: PopupField(
-            value: s.appearance,
-            options: {
-              AppearanceMode.system: l10n.appearanceSystem,
-              AppearanceMode.light: l10n.appearanceLight,
-              AppearanceMode.dark: l10n.appearanceDark,
-            },
-            onChanged: (v) => _save(context, s.copyWith(appearance: v)),
-          ),
-        ),
         SettingRow(
           label: l10n.settingsLanguage,
           child: PopupField<String?>(
@@ -119,7 +104,8 @@ class GeneralSettingsPage extends StatelessWidget {
               'en': 'English',
               'vi': 'Tiếng Việt',
             },
-            onChanged: (v) => _save(context, s.copyWith(languageCode: () => v)),
+            onChanged: (v) =>
+                saveSettings(context, s.copyWith(languageCode: () => v)),
           ),
         ),
         const SizedBox(height: 16),
@@ -156,7 +142,7 @@ class SidebarSettingsPage extends StatelessWidget {
             label: placeName(l10n, kind),
             leading: Icon(placeIcons[kind], size: 15, color: palette.accent),
             value: !s.hiddenPlaces.contains(kind),
-            onChanged: (show) => _save(
+            onChanged: (show) => saveSettings(
               context,
               s.copyWith(
                 hiddenPlaces: show
@@ -183,23 +169,29 @@ class AdvancedSettingsPage extends StatelessWidget {
         CheckRow(
           label: l10n.settingsShowHidden,
           value: s.showHidden,
-          onChanged: (v) => _save(context, s.copyWith(showHidden: v)),
+          onChanged: (v) => saveSettings(context, s.copyWith(showHidden: v)),
         ),
         CheckRow(
           label: l10n.settingsFoldersOnTop,
           value: s.foldersFirst,
-          onChanged: (v) => _save(context, s.copyWith(foldersFirst: v)),
+          onChanged: (v) => saveSettings(context, s.copyWith(foldersFirst: v)),
         ),
         CheckRow(
           label: l10n.settingsThumbnails,
           value: s.showThumbnails,
-          onChanged: (v) => _save(context, s.copyWith(showThumbnails: v)),
+          onChanged: (v) =>
+              saveSettings(context, s.copyWith(showThumbnails: v)),
         ),
         CheckRow(
           label: l10n.settingsWarnEmptyTrash,
           value: s.warnBeforeEmptyingTrash,
           onChanged: (v) =>
-              _save(context, s.copyWith(warnBeforeEmptyingTrash: v)),
+              saveSettings(context, s.copyWith(warnBeforeEmptyingTrash: v)),
+        ),
+        CheckRow(
+          label: l10n.settingsEnterRenames,
+          value: s.enterRenames,
+          onChanged: (v) => saveSettings(context, s.copyWith(enterRenames: v)),
         ),
       ],
     );

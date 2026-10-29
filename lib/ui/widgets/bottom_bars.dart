@@ -19,7 +19,7 @@ class PathBar extends StatelessWidget {
     final scope = FinderScope.of(context);
     final palette = context.palette;
     return Container(
-      height: FinderMetrics.pathBarHeight,
+      height: context.scaled(FinderMetrics.pathBarHeight),
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: palette.toolbar,
@@ -76,7 +76,7 @@ class PathBar extends StatelessWidget {
                         color: palette.textSecondary,
                       ),
                       _Crumb(
-                        label: selected.first.name,
+                        label: displayName(context, selected.first),
                         icon: FileIcon(entry: selected.first, size: 14),
                       ),
                     ],
@@ -152,7 +152,7 @@ class StatusBar extends StatelessWidget {
     final scope = FinderScope.of(context);
     final palette = context.palette;
     return Container(
-      height: FinderMetrics.statusBarHeight,
+      height: context.scaled(FinderMetrics.statusBarHeight),
       decoration: BoxDecoration(
         color: palette.toolbar,
         border: Border(top: BorderSide(color: palette.separator, width: 0.5)),

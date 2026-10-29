@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../models/finder_settings.dart';
+
 /// Spacing, sizes and radii shared by every Finder surface.
 abstract final class FinderMetrics {
   static const toolbarHeight = 52.0;
@@ -119,21 +121,78 @@ class FinderPalette extends ThemeExtension<FinderPalette> {
   );
 
   @override
-  FinderPalette copyWith() => this;
+  FinderPalette copyWith({Color? accent, Color? selection, Color? folder}) =>
+      FinderPalette(
+        content: content,
+        sidebar: sidebar,
+        toolbar: toolbar,
+        tabStrip: tabStrip,
+        separator: separator,
+        accent: accent ?? this.accent,
+        selection: selection ?? this.selection,
+        selectionInactive: selectionInactive,
+        sidebarSelection: sidebarSelection,
+        rowAlternate: rowAlternate,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
+        textOnAccent: textOnAccent,
+        folder: folder ?? this.folder,
+        control: control,
+        controlHover: controlHover,
+        trafficClose: trafficClose,
+        trafficMinimize: trafficMinimize,
+        trafficZoom: trafficZoom,
+      );
+
+  /// Re-tints accent-driven colours. Blue keeps the hand-tuned defaults;
+  /// other accents derive selection and folder colours, as macOS tints
+  /// folder icons with the accent.
+  FinderPalette withAccent(AccentColor accent, Brightness brightness) {
+    if (accent == AccentColor.blue) return this;
+    final color = _accentColors[accent] ?? this.accent;
+    final dark = brightness == Brightness.dark;
+    return copyWith(
+      accent: color,
+      selection: Color.lerp(color, const Color(0xFF000000), dark ? 0.25 : 0.12),
+      folder: Color.lerp(color, const Color(0xFFFFFFFF), dark ? 0.12 : 0.22),
+    );
+  }
 
   @override
   FinderPalette lerp(FinderPalette? other, double t) =>
       t < 0.5 || other == null ? this : other;
 }
 
+const _accentColors = <AccentColor, Color>{
+  AccentColor.purple: Color(0xFF9A4DB0),
+  AccentColor.pink: Color(0xFFE84D95),
+  AccentColor.red: Color(0xFFE0383E),
+  AccentColor.orange: Color(0xFFF2811D),
+  AccentColor.yellow: Color(0xFFD9A600),
+  AccentColor.green: Color(0xFF4FA53A),
+  AccentColor.graphite: Color(0xFF8C8C8C),
+};
+
+/// Swatch colour shown for [accent] in Settings.
+Color accentSwatch(AccentColor accent) =>
+    _accentColors[accent] ?? FinderPalette.light.accent;
+
 extension FinderThemeContext on BuildContext {
   FinderPalette get palette => Theme.of(this).extension<FinderPalette>()!;
+
+  /// [value] grown with the user's text size, for heights that hold text.
+  double scaled(double value) => MediaQuery.textScalerOf(this).scale(value);
 }
 
-ThemeData buildFinderTheme(Brightness brightness) {
-  final palette = brightness == Brightness.light
-      ? FinderPalette.light
-      : FinderPalette.dark;
+ThemeData buildFinderTheme(
+  Brightness brightness, {
+  AccentColor accent = AccentColor.blue,
+}) {
+  final palette =
+      (brightness == Brightness.light
+              ? FinderPalette.light
+              : FinderPalette.dark)
+          .withAccent(accent, brightness);
   final base = ThemeData(
     brightness: brightness,
     useMaterial3: true,

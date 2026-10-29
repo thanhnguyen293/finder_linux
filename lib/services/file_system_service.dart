@@ -8,6 +8,10 @@ import '../models/file_entry.dart';
 /// All disk and desktop-integration side effects. Heavy lifting is delegated
 /// to coreutils/gio so behaviour matches the rest of the desktop (trash spec,
 /// cross-device moves, default-app handling).
+/// Command-line flag forcing a separate window (Ctrl+N, Move Tab to New
+/// Window) even when "open folders in tabs" is on.
+const newWindowFlag = '--new-window';
+
 class FileSystemService {
   const FileSystemService();
 

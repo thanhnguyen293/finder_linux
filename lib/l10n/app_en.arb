@@ -250,5 +250,22 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsDisplay": "Display",
+  "settingsOpenFoldersInTabs": "Open folders in tabs instead of new windows",
+  "settingsAccentColor": "Accent color:",
+  "settingsTextSize": "Text size:",
+  "settingsIconSize": "Icon size:",
+  "settingsShowPathBar": "Show path bar",
+  "settingsShowStatusBar": "Show status bar",
+  "settingsShowExtensions": "Show all filename extensions",
+  "settingsEnterRenames": "Press Enter to rename (macOS style)",
+  "accentBlue": "Blue",
+  "accentPurple": "Purple",
+  "accentPink": "Pink",
+  "accentRed": "Red",
+  "accentOrange": "Orange",
+  "accentYellow": "Yellow",
+  "accentGreen": "Green",
+  "accentGraphite": "Graphite"
 }

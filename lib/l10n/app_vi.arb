@@ -132,5 +132,22 @@
   "menuCloseOtherTabs": "Đóng các tab khác",
   "menuMoveTabToNewWindow": "Chuyển tab sang cửa sổ mới",
   "menuMergeAllWindows": "Gộp tất cả cửa sổ",
-  "mergedWindows": "{count, plural, =0{Không có cửa sổ Finder nào khác để gộp} other{Đã gộp {count} cửa sổ}}"
+  "mergedWindows": "{count, plural, =0{Không có cửa sổ Finder nào khác để gộp} other{Đã gộp {count} cửa sổ}}",
+  "settingsDisplay": "Hiển thị",
+  "settingsOpenFoldersInTabs": "Mở thư mục trong tab thay vì cửa sổ mới",
+  "settingsAccentColor": "Màu nhấn:",
+  "settingsTextSize": "Cỡ chữ:",
+  "settingsIconSize": "Cỡ biểu tượng:",
+  "settingsShowPathBar": "Hiện thanh đường dẫn",
+  "settingsShowStatusBar": "Hiện thanh trạng thái",
+  "settingsShowExtensions": "Hiện tất cả phần mở rộng tên tệp",
+  "settingsEnterRenames": "Nhấn Enter để đổi tên (kiểu macOS)",
+  "accentBlue": "Xanh dương",
+  "accentPurple": "Tím",
+  "accentPink": "Hồng",
+  "accentRed": "Đỏ",
+  "accentOrange": "Cam",
+  "accentYellow": "Vàng",
+  "accentGreen": "Xanh lá",
+  "accentGraphite": "Than chì"
 }
