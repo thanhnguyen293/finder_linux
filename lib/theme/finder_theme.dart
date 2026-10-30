@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/finder_settings.dart';
+import '../models/tag_color.dart';
+import '../models/theme_colors.dart';
 
 /// Spacing, sizes and radii shared by every Finder surface.
 abstract final class FinderMetrics {
@@ -52,7 +54,11 @@ class FinderPalette extends ThemeExtension<FinderPalette> {
     required this.trafficClose,
     required this.trafficMinimize,
     required this.trafficZoom,
+    this.glass = false,
   });
+
+  /// Menus, dialogs and floating panels are frosted glass (see GlassPanel).
+  final bool glass;
 
   final Color content;
   final Color sidebar;
@@ -121,40 +127,107 @@ class FinderPalette extends ThemeExtension<FinderPalette> {
   );
 
   @override
-  FinderPalette copyWith({Color? accent, Color? selection, Color? folder}) =>
-      FinderPalette(
-        content: content,
-        sidebar: sidebar,
-        toolbar: toolbar,
-        tabStrip: tabStrip,
-        separator: separator,
-        accent: accent ?? this.accent,
-        selection: selection ?? this.selection,
-        selectionInactive: selectionInactive,
-        sidebarSelection: sidebarSelection,
-        rowAlternate: rowAlternate,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
-        textOnAccent: textOnAccent,
-        folder: folder ?? this.folder,
-        control: control,
-        controlHover: controlHover,
-        trafficClose: trafficClose,
-        trafficMinimize: trafficMinimize,
-        trafficZoom: trafficZoom,
-      );
+  FinderPalette copyWith({
+    Color? accent,
+    Color? selection,
+    Color? folder,
+    Color? content,
+    Color? sidebar,
+    Color? toolbar,
+    Color? tabStrip,
+    Color? sidebarSelection,
+    Color? rowAlternate,
+    bool? glass,
+  }) => FinderPalette(
+    content: content ?? this.content,
+    sidebar: sidebar ?? this.sidebar,
+    toolbar: toolbar ?? this.toolbar,
+    tabStrip: tabStrip ?? this.tabStrip,
+    separator: separator,
+    accent: accent ?? this.accent,
+    selection: selection ?? this.selection,
+    selectionInactive: selectionInactive,
+    sidebarSelection: sidebarSelection ?? this.sidebarSelection,
+    rowAlternate: rowAlternate ?? this.rowAlternate,
+    textPrimary: textPrimary,
+    textSecondary: textSecondary,
+    textOnAccent: textOnAccent,
+    folder: folder ?? this.folder,
+    control: control,
+    controlHover: controlHover,
+    trafficClose: trafficClose,
+    trafficMinimize: trafficMinimize,
+    trafficZoom: trafficZoom,
+  );
 
   /// Re-tints accent-driven colours. Blue keeps the hand-tuned defaults;
   /// other accents derive selection and folder colours, as macOS tints
   /// folder icons with the accent.
   FinderPalette withAccent(AccentColor accent, Brightness brightness) {
     if (accent == AccentColor.blue) return this;
-    final color = _accentColors[accent] ?? this.accent;
+    return _tintedBy(_accentColors[accent] ?? this.accent, brightness);
+  }
+
+  FinderPalette _tintedBy(Color color, Brightness brightness) {
     final dark = brightness == Brightness.dark;
     return copyWith(
       accent: color,
       selection: Color.lerp(color, const Color(0xFF000000), dark ? 0.25 : 0.12),
       folder: Color.lerp(color, const Color(0xFFFFFFFF), dark ? 0.12 : 0.22),
+    );
+  }
+
+  /// Applies the theme editor's colors. A custom accent re-derives
+  /// selection and folders like the preset accents; backgrounds bring
+  /// their related shades (tab strip, row stripes, sidebar selection)
+  /// along so the window stays coherent.
+  FinderPalette withOverrides(ThemeColors colors, Brightness brightness) {
+    if (colors.isEmpty) return this;
+    Color? at(ThemeSlot slot) => switch (colors[slot]) {
+      final argb? => Color(argb),
+      null => null,
+    };
+    final dark = brightness == Brightness.dark;
+    var palette = switch (at(ThemeSlot.accent)) {
+      final accent? => _tintedBy(accent, brightness),
+      null => this,
+    };
+    final window = at(ThemeSlot.window);
+    final sidebar = at(ThemeSlot.sidebar);
+    final toolbar = at(ThemeSlot.toolbar);
+    palette = palette.copyWith(
+      selection: at(ThemeSlot.selection),
+      folder: at(ThemeSlot.folder),
+      content: window,
+      rowAlternate: window == null
+          ? null
+          : Color.lerp(window, textPrimary, dark ? 0.03 : 0.035),
+      sidebar: sidebar,
+      sidebarSelection: sidebar == null
+          ? null
+          : Color.lerp(sidebar, textPrimary, 0.1),
+      toolbar: toolbar,
+      tabStrip: toolbar == null
+          ? null
+          : Color.lerp(toolbar, const Color(0xFF000000), dark ? 0.35 : 0.08),
+    );
+    return palette;
+  }
+
+  /// Lets the desktop show through: [window] for every background, the
+  /// sidebar additionally [sidebar] (both 1 = solid).
+  FinderPalette withTranslucency({
+    required double sidebar,
+    required double window,
+  }) {
+    if (sidebar >= 1 && window >= 1) return this;
+    Color see(Color c, double opacity) => c.withValues(alpha: c.a * opacity);
+    return copyWith(
+      content: see(content, window),
+      toolbar: see(toolbar, window),
+      tabStrip: see(tabStrip, window),
+      rowAlternate: see(rowAlternate, window),
+      sidebar: see(this.sidebar, sidebar * window),
     );
   }
 
@@ -173,6 +246,18 @@ const _accentColors = <AccentColor, Color>{
   AccentColor.graphite: Color(0xFF8C8C8C),
 };
 
+const _tagColors = <TagColor, Color>{
+  TagColor.red: Color(0xFFFF453A),
+  TagColor.orange: Color(0xFFFF9F0A),
+  TagColor.yellow: Color(0xFFFFD60A),
+  TagColor.green: Color(0xFF32D74B),
+  TagColor.blue: Color(0xFF0A84FF),
+  TagColor.purple: Color(0xFFBF5AF2),
+  TagColor.gray: Color(0xFF98989D),
+};
+
+Color tagSwatch(TagColor tag) => _tagColors[tag] ?? const Color(0xFF98989D);
+
 /// Swatch colour shown for [accent] in Settings.
 Color accentSwatch(AccentColor accent) =>
     _accentColors[accent] ?? FinderPalette.light.accent;
@@ -187,12 +272,25 @@ extension FinderThemeContext on BuildContext {
 ThemeData buildFinderTheme(
   Brightness brightness, {
   AccentColor accent = AccentColor.blue,
+  ThemeColors colors = const {},
+  double sidebarOpacity = 1,
+  double windowOpacity = 1,
+  bool glass = false,
 }) {
   final palette =
       (brightness == Brightness.light
               ? FinderPalette.light
               : FinderPalette.dark)
-          .withAccent(accent, brightness);
+          .withAccent(accent, brightness)
+          .withOverrides(colors, brightness)
+          .copyWith(glass: glass);
+  // Window surfaces may let the desktop through; Material's own surfaces
+  // (dialogs, menus) keep the solid colors so they stay readable.
+  final surfaces = palette.withTranslucency(
+    sidebar: sidebarOpacity,
+    window: windowOpacity,
+  );
+  final translucent = !identical(surfaces, palette);
   final base = ThemeData(
     brightness: brightness,
     useMaterial3: true,
@@ -202,13 +300,14 @@ ThemeData buildFinderTheme(
       primary: palette.accent,
       surface: palette.content,
     ),
-    scaffoldBackgroundColor: palette.content,
+    // A see-through sidebar must not show a solid scaffold behind it.
+    scaffoldBackgroundColor: translucent ? Colors.transparent : palette.content,
     splashFactory: NoSplash.splashFactory,
     highlightColor: Colors.transparent,
     fontFamily: 'Ubuntu Sans',
     fontFamilyFallback: const ['Inter', 'Ubuntu', 'Cantarell', 'Noto Sans'],
     visualDensity: VisualDensity.compact,
-    extensions: [palette],
+    extensions: [surfaces],
   );
   return base.copyWith(
     textTheme: base.textTheme.apply(

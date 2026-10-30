@@ -10,6 +10,8 @@ import '../settings_scope.dart';
 import '../formatting.dart';
 import '../widgets/file_icon.dart';
 import '../widgets/rename_field.dart';
+import '../widgets/tag_dots.dart';
+import 'marquee.dart';
 import 'view_common.dart';
 
 const _gridPadding = 12.0;
@@ -40,7 +42,11 @@ class _IconGridViewState extends State<IconGridView> {
   Widget build(BuildContext context) {
     final scope = FinderScope.of(context);
     return ListenableBuilder(
-      listenable: Listenable.merge([scope.browser, scope.contentFocus]),
+      listenable: Listenable.merge([
+        scope.browser,
+        scope.contentFocus,
+        scope.actions.clipboard,
+      ]),
       builder: (context, _) => LayoutBuilder(
         builder: (context, box) {
           final iconSize = SettingsScope.of(context).iconSize.toDouble();
@@ -62,43 +68,63 @@ class _IconGridViewState extends State<IconGridView> {
               for (final g in b.groups) (key: g.key, entries: g.entries),
           ];
           _scheduleReveal(sections, columns);
-          return CustomScrollView(
+          return MarqueeSelector(
             controller: _scroll,
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.all(_gridPadding),
-                sliver: SliverMainAxisGroup(
-                  slivers: [
-                    for (final section in sections) ...[
-                      if (section.key case final key?)
-                        SliverToBoxAdapter(
-                          child: GroupHeader(
-                            label: groupLabel(context, key),
-                            height: _headerHeight,
+            hitTest: (rect) => gridHits(
+              rect,
+              sections: [
+                for (final section in sections)
+                  (
+                    header: section.key != null,
+                    paths: [for (final e in section.entries) e.path],
+                  ),
+              ],
+              columns: columns,
+              // SliverGrid stretches the cells over the padded width.
+              cellWidth: (box.maxWidth - 2 * _gridPadding) / columns,
+              tileHeight: _tileHeight,
+              padding: _gridPadding,
+              headerHeight: _headerHeight,
+            ),
+            child: CustomScrollView(
+              controller: _scroll,
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(_gridPadding),
+                  sliver: SliverMainAxisGroup(
+                    slivers: [
+                      for (final section in sections) ...[
+                        if (section.key case final key?)
+                          SliverToBoxAdapter(
+                            child: GroupHeader(
+                              label: groupLabel(context, key),
+                              height: _headerHeight,
+                            ),
                           ),
+                        SliverGrid.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                mainAxisExtent: _tileHeight,
+                              ),
+                          itemCount: section.entries.length,
+                          itemBuilder: (context, i) {
+                            final e = section.entries[i];
+                            return _IconTile(
+                              entry: e,
+                              iconSize: iconSize,
+                              selected: b.isSelected(e.path),
+                              focused: scope.contentFocus.hasFocus,
+                              renaming: b.renamingPath == e.path,
+                            );
+                          },
                         ),
-                      SliverGrid.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: columns,
-                          mainAxisExtent: _tileHeight,
-                        ),
-                        itemCount: section.entries.length,
-                        itemBuilder: (context, i) {
-                          final e = section.entries[i];
-                          return _IconTile(
-                            entry: e,
-                            iconSize: iconSize,
-                            selected: b.isSelected(e.path),
-                            focused: scope.contentFocus.hasFocus,
-                            renaming: b.renamingPath == e.path,
-                          );
-                        },
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
@@ -186,8 +212,25 @@ class _IconTile extends StatelessWidget {
                     color: labelBg,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(
-                    displayName(context, entry),
+                  child: Text.rich(
+                    TextSpan(
+                      text: displayName(context, entry),
+                      children: [
+                        if (entry.colorTags case final tags
+                            when tags.isNotEmpty)
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: TagDots(
+                                tags: tags,
+                                size: 8,
+                                ring: labelBg ?? palette.content,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                     maxLines: 2,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,

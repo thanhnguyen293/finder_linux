@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/file_entry.dart';
 import '../../state/drop_rules.dart';
 import '../../theme/finder_theme.dart';
+import '../dialogs/conflict_dialog.dart';
 import '../finder_scope.dart';
 import '../widgets/file_icon.dart';
 
@@ -15,6 +17,15 @@ import '../widgets/file_icon.dart';
 // the same code handles drags inside Finder, files dropped in from other
 // apps, and files dragged out to them. Each dragged file carries its path
 // as `localData` (Finder-internal) and a file:// URI (other apps).
+
+// TEMP diagnostics for split-view drops; removed once fixed.
+final _dndLog = Platform.environment['FINDER_DEBUG_DND'] == null
+    ? null
+    : File('/tmp/finder-dnd.log');
+void dndLog(String message) => _dndLog?.writeAsStringSync(
+  '${DateTime.now().toIso8601String()} $message\n',
+  mode: FileMode.append,
+);
 
 /// Moves or copies [paths] into [destDir]; name clashes are numbered.
 Future<void> dropFiles(
@@ -27,6 +38,7 @@ Future<void> dropFiles(
   destDir,
   copy: copy,
   copySuffix: AppLocalizations.of(context).copySuffix,
+  resolve: conflictResolver(context),
 );
 
 /// Drag sources currently on screen, by path, so dragging one selected
@@ -98,7 +110,11 @@ class _FileDraggableState extends State<FileDraggable> {
           final paths = b.isSelected(entry.path)
               ? [entry.path, ...b.selection.where((p) => p != entry.path)]
               : [entry.path];
-          return [for (final path in paths) ?_dragSources[path]?.currentState];
+          final items = [
+            for (final path in paths) ?_dragSources[path]?.currentState,
+          ];
+          dndLog('drag start $paths -> ${items.length} items');
+          return items;
         },
         child: widget.child,
       ),
@@ -155,11 +171,30 @@ class _FolderDropTargetState extends State<FolderDropTarget> {
   }
 
   DropAction _decide(DropSession session) {
+    // Only files land in folders; other drags (tabs) go to their own zones.
+    if (!session.items.every((i) => i.canProvide(Formats.fileUri))) {
+      return DropAction.none;
+    }
     final local = [
       for (final item in session.items)
         if (item.localData case final String path) path,
     ];
     final keys = HardwareKeyboard.instance;
+    final action = decideDrop(
+      localPaths: local.length == session.items.length ? local : null,
+      dir: widget.dir,
+      allowMove: session.allowedOperations.contains(DropOperation.move),
+      allowCopy: session.allowedOperations.contains(DropOperation.copy),
+      ctrl: keys.isControlPressed,
+      shift: keys.isShiftPressed,
+      toTrash: widget.toTrash,
+    );
+    dndLog(
+      'over dir=${widget.dir} local=$local items=${session.items.length} '
+      'ops=${session.allowedOperations} -> $action',
+    );
+    return action;
+    // ignore: dead_code
     return decideDrop(
       localPaths: local.length == session.items.length ? local : null,
       dir: widget.dir,
@@ -174,6 +209,10 @@ class _FolderDropTargetState extends State<FolderDropTarget> {
   Future<void> _perform(PerformDropEvent event) async {
     _setHovering(false);
     final paths = await _droppedPaths(event.session);
+    dndLog(
+      'perform dir=${widget.dir} paths=$paths op=${event.acceptedOperation} '
+      'mounted=$mounted',
+    );
     if (paths.isEmpty || !mounted) return;
     final copy = event.acceptedOperation == DropOperation.copy;
     final scope = FinderScope.of(context);
@@ -203,9 +242,18 @@ class _FolderDropTargetState extends State<FolderDropTarget> {
         DropAction.move => DropOperation.move,
         DropAction.copy => DropOperation.copy,
       },
-      onDropEnter: (_) => _setHovering(true),
-      onDropLeave: (_) => _setHovering(false),
-      onDropEnded: (_) => _setHovering(false),
+      onDropEnter: (_) {
+        dndLog('enter ${widget.dir}');
+        _setHovering(true);
+      },
+      onDropLeave: (_) {
+        dndLog('leave ${widget.dir}');
+        _setHovering(false);
+      },
+      onDropEnded: (_) {
+        dndLog('ended ${widget.dir}');
+        _setHovering(false);
+      },
       onPerformDrop: _perform,
       child: widget.builder(context, _hovering),
     );
@@ -250,6 +298,13 @@ class _DragFeedback extends StatelessWidget {
   final FileEntry entry;
 
   @override
-  Widget build(BuildContext context) =>
-      FileIcon(entry: entry, size: 48, thumbnail: true);
+  Widget build(BuildContext context) => SnapshotSettings(
+    // The snapshot is laid out at the item's top-left, which put the icon
+    // far from the pointer on wide rows (list view, the right split pane).
+    // Centre it under the pointer instead, at its own size rather than the
+    // row's.
+    translation: (rect, dragPosition) => dragPosition - rect.center,
+    constraintsTransform: (_) => const BoxConstraints(),
+    child: FileIcon(entry: entry, size: 48, thumbnail: true),
+  );
 }

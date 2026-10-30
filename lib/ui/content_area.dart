@@ -48,7 +48,11 @@ class _ContentAreaState extends State<ContentArea> {
                         ),
                       )
                     : const BoxDecoration(),
-                child: switch (scope.browser.viewMode) {
+                // Search results span many folders; columns can't show
+                // them, so they list like Finder's search window.
+                child: switch (scope.browser.searchesTree
+                    ? ViewMode.list
+                    : scope.browser.viewMode) {
                   ViewMode.icons => IconGridView(
                     onColumnsChanged: (c) => _gridColumns = c,
                   ),

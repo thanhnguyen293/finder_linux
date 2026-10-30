@@ -1,9 +1,13 @@
 import 'dart:io';
 
+import 'package:finder_linux/services/clipboard_service.dart';
 import 'package:finder_linux/services/file_system_service.dart';
 import 'package:finder_linux/services/window_registry.dart';
 import 'package:finder_linux/state/browser_controller.dart';
+import 'package:finder_linux/services/transfer_service.dart';
 import 'package:finder_linux/state/tabs_controller.dart';
+import 'package:finder_linux/state/transfer_controller.dart';
+import 'package:finder_linux/state/undo_history.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
@@ -30,6 +34,14 @@ void main() {
           trashDir: '/nonexistent',
           initialPath: path,
         ),
+        history: FileUndoHistory(
+          fs: const FileSystemService(),
+          trashFilesDir: '/nonexistent',
+        ),
+        transfers: TransferController(
+          TransferService(const FileSystemService()),
+        ),
+        clipboard: ClipboardController(MemoryFileClipboard()),
       );
     });
 
@@ -74,6 +86,37 @@ void main() {
       tabs.move(2, 0);
       expect(p.basename(tabs.active.browser.path), 'c');
       expect(tabs.activeIndex, 0);
+    });
+
+    test('split view pairs tabs and ends when either leaves', () {
+      final a = tabs.open(at('a'));
+      final b = tabs.open(at('b'));
+      final c = tabs.open(at('c'));
+      tabs.activate(0);
+      expect(tabs.splitWith(b), isTrue);
+      expect(tabs.split?.left, a);
+      expect(tabs.split?.right, b);
+      expect(tabs.active, b, reason: 'the dragged tab gets focus');
+
+      tabs.activate(0);
+      expect(tabs.split, isNotNull, reason: 'switching sides keeps split');
+      tabs.move(2, 0);
+      expect(tabs.split?.right, b, reason: 'reordering keeps the pair');
+
+      tabs.activate(tabs.tabs.indexOf(c));
+      expect(tabs.split, isNull, reason: 'another tab leaves split view');
+
+      tabs.splitWith(c);
+      tabs.close(tabs.tabs.indexOf(c));
+      expect(tabs.split, isNull, reason: 'closing a side leaves split');
+    });
+
+    test('splitting the active tab pairs it with a neighbour', () {
+      final a = tabs.open(at('a'));
+      expect(tabs.splitWith(a), isFalse, reason: 'needs two tabs');
+      final b = tabs.open(at('b'));
+      expect(tabs.splitWith(b), isTrue);
+      expect(tabs.split?.left, a);
     });
 
     test('closeOthers leaves only the chosen tab', () {
@@ -122,40 +165,6 @@ void main() {
       );
       await a.dispose();
       await b.dispose();
-    });
-  });
-
-  group('open folders in tabs', () {
-    test('a new launch hands its folder to an open window', () async {
-      final runtime = p.join(root.path, 'run2');
-      String? opened;
-      String? selected;
-      final window = WindowRegistry(
-        runtimeDir: runtime,
-        id: 'w',
-        describeTabs: () => const [],
-        surrender: () {},
-        openInTab: (path, select) {
-          opened = path;
-          selected = select;
-        },
-      );
-      expect(
-        await WindowRegistry.sendOpen(runtimeDir: runtime, path: '/x'),
-        isFalse,
-        reason: 'no window yet: the launch opens its own',
-      );
-      await window.start();
-      final handed = await WindowRegistry.sendOpen(
-        runtimeDir: runtime,
-        path: '/srv/data',
-        select: '/srv/data/a.txt',
-      );
-      expect(handed, isTrue);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      expect(opened, '/srv/data');
-      expect(selected, '/srv/data/a.txt');
-      await window.dispose();
     });
   });
 }

@@ -39,6 +39,9 @@ class ViewKeyHandler {
 
     final handled = switch (key) {
       _ when ctrl && alt && key == LogicalKeyboardKey.keyC => run(cmd.copyPath),
+      LogicalKeyboardKey.keyZ when ctrl && shift => run(cmd.redo),
+      LogicalKeyboardKey.keyZ when ctrl => run(cmd.undo),
+      LogicalKeyboardKey.keyY when ctrl => run(cmd.redo),
       LogicalKeyboardKey.keyA when ctrl => run(b.selectAll),
       LogicalKeyboardKey.keyC when ctrl => run(scope.actions.copy),
       LogicalKeyboardKey.keyX when ctrl => run(scope.actions.cut),
@@ -161,13 +164,23 @@ KeyEventResult handleGlobalKey(
       LogicalKeyboardKey.period => b.toggleHidden,
       LogicalKeyboardKey.keyM => cmd.mergeAllWindows,
       LogicalKeyboardKey.tab => () => scope.tabs.cycle(-1),
+      // Ctrl+Shift+= is Ctrl++ on most layouts.
+      LogicalKeyboardKey.equal ||
+      LogicalKeyboardKey.add => () => cmd.zoomText(1),
       _ => null,
     };
   } else if (ctrl) {
     action = switch (key) {
       LogicalKeyboardKey.keyF => searchFocus.requestFocus,
       LogicalKeyboardKey.comma => cmd.openSettings,
-      LogicalKeyboardKey.keyL => cmd.goToFolder,
+      LogicalKeyboardKey.keyL => cmd.editLocation,
+      LogicalKeyboardKey.equal ||
+      LogicalKeyboardKey.add ||
+      LogicalKeyboardKey.numpadAdd => () => cmd.zoomText(1),
+      LogicalKeyboardKey.minus ||
+      LogicalKeyboardKey.numpadSubtract => () => cmd.zoomText(-1),
+      LogicalKeyboardKey.digit0 ||
+      LogicalKeyboardKey.numpad0 => () => cmd.zoomText(0),
       LogicalKeyboardKey.keyN => cmd.newWindow,
       LogicalKeyboardKey.keyT => cmd.newTab,
       LogicalKeyboardKey.keyW => cmd.closeTab,

@@ -3,10 +3,18 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/file_entry.dart';
 import '../../models/place.dart';
+import '../../models/tag_color.dart';
 import '../../theme/finder_theme.dart';
 import '../commands.dart';
 import '../finder_scope.dart';
 import 'finder_menu.dart';
+import 'tag_picker.dart';
+
+/// Width of a context menu item's label + shortcut. With the 14 px side
+/// padding the item is 224 px, a whole multiple of the 56 px steps
+/// Material rounds menu widths up to, so no empty strip trails the
+/// shortcuts.
+const contextMenuContentWidth = 196.0;
 
 class _Action {
   const _Action(this.label, this.run, {this.shortcut});
@@ -15,25 +23,28 @@ class _Action {
   final String? shortcut;
 }
 
-/// `null` entries render as separators.
+/// `null` entries render as separators; [PopupMenuEntry]s (the tag row)
+/// pass through.
 Future<void> _show(
   BuildContext context,
   Offset at,
-  List<_Action?> actions,
+  List<Object?> actions,
 ) async {
   final palette = context.palette;
   final chosen = await showFinderMenu<VoidCallback>(context, at, [
     for (final a in actions)
       if (a == null)
         const PopupMenuDivider(height: 9)
-      else
+      else if (a is PopupMenuEntry<VoidCallback>)
+        a
+      else if (a is _Action)
         PopupMenuItem<VoidCallback>(
           value: a.run,
           enabled: a.run != null,
           height: 26,
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: SizedBox(
-            width: 200,
+            width: contextMenuContentWidth,
             child: Row(
               children: [
                 Expanded(
@@ -93,6 +104,17 @@ Future<void> showEntryMenu(BuildContext context, Offset at, FileEntry entry) {
     _Action(l10n.menuCopy, actions.copy, shortcut: 'Ctrl+C'),
     _Action(l10n.menuCut, actions.cut, shortcut: 'Ctrl+X'),
     _Action(l10n.menuCopyPath, cmd.copyPath, shortcut: 'Ctrl+Alt+C'),
+    null,
+    TagPickerEntry(
+      tagged: {
+        for (final c in TagColor.values)
+          if (scope.browser.selectedEntries.every(
+            (e) => e.colorTags.contains(c),
+          ))
+            c,
+      },
+      onToggle: actions.toggleTag,
+    ),
     if (folder) ...[
       null,
       _Action(l10n.menuOpenInNewTab, () => cmd.newTab(entry.path)),
@@ -119,14 +141,22 @@ Future<void> showBackgroundMenu(BuildContext context, Offset at) {
       ),
     ]);
   }
+  final history = scope.actions.history;
   return _show(context, at, [
+    _Action(
+      l10n.menuUndo,
+      history.canUndo ? cmd.undo : null,
+      shortcut: 'Ctrl+Z',
+    ),
+    _Action(
+      l10n.menuRedo,
+      history.canRedo ? cmd.redo : null,
+      shortcut: 'Ctrl+Shift+Z',
+    ),
+    null,
     _Action(l10n.menuNewFolder, cmd.newFolder, shortcut: 'Ctrl+Shift+N'),
     null,
-    _Action(
-      l10n.menuPaste,
-      browser.clipboard == null ? null : cmd.paste,
-      shortcut: 'Ctrl+V',
-    ),
+    _Action(l10n.menuPaste, cmd.paste, shortcut: 'Ctrl+V'),
     null,
     _Action(l10n.menuOpenInTerminal, cmd.openInTerminal),
     _Action(l10n.tooltipNewTab, cmd.newTab, shortcut: 'Ctrl+T'),
@@ -154,10 +184,7 @@ Future<void> showPlaceMenu(BuildContext context, Offset at, Place place) {
     _Action(l10n.menuOpen, () => cmd.goTo(place.path)),
     _Action(l10n.menuOpenInNewTab, () => cmd.newTab(place.path)),
     if (place.kind != PlaceKind.trash) ...[
-      _Action(
-        l10n.menuNewWindow,
-        () => scope.browser.fs.openNewWindow(place.path),
-      ),
+      _Action(l10n.menuNewWindow, () => scope.window.openWindow(place.path)),
       _Action(l10n.menuOpenInTerminal, () => cmd.openInTerminal(place.path)),
     ],
     if (place.kind == PlaceKind.trash) ...[

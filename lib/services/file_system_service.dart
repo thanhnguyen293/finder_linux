@@ -4,12 +4,14 @@ import 'package:path/path.dart' as p;
 
 import '../core/result.dart';
 import '../models/file_entry.dart';
+import 'xattr_tags.dart';
 
 /// All disk and desktop-integration side effects. Heavy lifting is delegated
 /// to coreutils/gio so behaviour matches the rest of the desktop (trash spec,
 /// cross-device moves, default-app handling).
 /// Command-line flag forcing a separate window (Ctrl+N, Move Tab to New
-/// Window) even when "open folders in tabs" is on.
+/// Window) even when "open folders in tabs" is on. The GTK runner adds it
+/// to every window after the first, which alone restores the saved tabs.
 const newWindowFlag = '--new-window';
 
 class FileSystemService {
@@ -36,6 +38,7 @@ class FileSystemService {
       modified: broken ? DateTime.fromMillisecondsSinceEpoch(0) : stat.modified,
       mode: broken ? 0 : stat.mode,
       isSymlink: entity is Link,
+      tags: broken ? const [] : readTags(entity.path),
     );
   }
 
@@ -45,6 +48,10 @@ class FileSystemService {
       FileSystemEntity.isLinkSync(path) ? Link(path) : File(path),
     );
   }
+
+  /// Replaces [path]'s tags (see `xattr_tags.dart`).
+  Future<Result<void>> setTags(String path, List<String> tags) async =>
+      writeTags(path, tags);
 
   Future<Result<String>> createFolder(String parent, String baseName) async {
     final target = uniqueChildPath(parent, baseName);
@@ -152,6 +159,61 @@ class FileSystemService {
     }
   }
 
+  /// Moves [from] to exactly [to] (undo / redo); refuses to overwrite.
+  Future<Result<void>> moveExact(String from, String to) async {
+    if (_exists(to)) return Err(Failure(FailureKind.nameTaken, p.basename(to)));
+    return _run('mv', ['-T', '--', from, to], value: null);
+  }
+
+  /// Copies [source] to exactly [dest] (redo of a copy).
+  Future<Result<void>> copyExact(String source, String dest) async {
+    if (_exists(dest)) {
+      return Err(Failure(FailureKind.nameTaken, p.basename(dest)));
+    }
+    return _run('cp', ['-a', '-T', '--', source, dest], value: null);
+  }
+
+  /// Names of the items currently in the Trash.
+  Future<Set<String>> trashedNames(String trashFilesDir) async {
+    final dir = Directory(trashFilesDir);
+    if (!dir.existsSync()) return {};
+    return {await for (final e in dir.list()) p.basename(e.path)};
+  }
+
+  /// The most recently trashed item that came from [original], looked up
+  /// through the `.trashinfo` files of [trashFilesDir]. With [among], only
+  /// those trashed names are considered.
+  Future<String?> findInTrash(
+    String original,
+    String trashFilesDir, {
+    Set<String>? among,
+  }) async {
+    final info = Directory(p.join(p.dirname(trashFilesDir), 'info'));
+    if (!info.existsSync()) return null;
+    String? best;
+    var bestDate = '';
+    await for (final f in info.list()) {
+      if (f is! File || !f.path.endsWith('.trashinfo')) continue;
+      if (among != null &&
+          !among.contains(p.basenameWithoutExtension(f.path))) {
+        continue;
+      }
+      final lines = await f.readAsLines();
+      String? field(String key) => lines
+          .where((l) => l.startsWith('$key='))
+          .map((l) => l.substring(key.length + 1))
+          .firstOrNull;
+      final path = field('Path');
+      if (path == null || Uri.decodeFull(path) != original) continue;
+      final date = field('DeletionDate') ?? '';
+      if (best == null || date.compareTo(bestDate) > 0) {
+        best = p.join(trashFilesDir, p.basenameWithoutExtension(f.path));
+        bestDate = date;
+      }
+    }
+    return best;
+  }
+
   Future<Result<void>> open(String path) =>
       _run('gio', ['open', path], value: null);
 
@@ -162,12 +224,6 @@ class FileSystemService {
       workingDirectory: dir,
       mode: ProcessStartMode.detached,
     );
-  }
-
-  Future<void> openNewWindow(String dir) async {
-    await Process.start(Platform.resolvedExecutable, [
-      dir,
-    ], mode: ProcessStartMode.detached);
   }
 
   Future<Result<void>> eject(String mountPoint) async {

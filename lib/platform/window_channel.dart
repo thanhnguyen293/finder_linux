@@ -1,16 +1,32 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../services/file_system_service.dart' show newWindowFlag;
+
 /// Bridge to the GTK window in `linux/runner/my_application.cc`, which hides
-/// the system title bar so Flutter can draw Finder's toolbar.
+/// the system title bar so Flutter can draw Finder's toolbar. All windows
+/// live in one process; each has its own engine and channel.
 class WindowChannel {
   WindowChannel() {
     _channel.setMethodCallHandler((call) async {
-      if (call.method == 'squareCornersChanged') {
-        squareCorners.value = call.arguments == true;
+      switch (call.method) {
+        case 'squareCornersChanged':
+          squareCorners.value = call.arguments == true;
+        case 'launch':
+          final args = [
+            for (final a in call.arguments as List<Object?>? ?? const [])
+              if (a is String) a,
+          ];
+          return await onLaunch?.call(args) ?? false;
       }
+      return null;
     });
   }
+
+  /// Finder was launched again (a folder opened from another app, the
+  /// `finder` command) while this is the active window. Returns whether
+  /// this window took it (as a tab); otherwise a new window opens.
+  Future<bool> Function(List<String> args)? onLaunch;
 
   static const _channel = MethodChannel('finder/window');
 
@@ -26,6 +42,11 @@ class WindowChannel {
   /// Raises the window (a folder was opened into it from another app).
   Future<void> present() => _invoke('present');
   Future<void> setTitle(String title) => _invoke('setTitle', title);
+
+  /// Opens another Finder window in this process, at [dir] or at the
+  /// "New windows open" folder.
+  Future<void> openWindow([String? dir]) =>
+      _invoke('openWindow', [newWindowFlag, ?dir]);
 
   void dispose() {
     _channel.setMethodCallHandler(null);

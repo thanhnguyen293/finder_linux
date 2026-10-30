@@ -9,6 +9,7 @@ import '../formatting.dart';
 import '../settings_scope.dart';
 import '../sidebar/finder_sidebar.dart';
 import 'settings_controls.dart';
+import 'settings_updates_section.dart';
 
 /// Order of the sidebar toggles, matching the sidebar itself.
 const _sidebarKinds = [
@@ -48,11 +49,22 @@ class GeneralSettingsPage extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.only(left: 170, bottom: 6),
-          child: CheckRow(
-            label: l10n.settingsOpenFoldersInTabs,
-            value: s.openFoldersInTabs,
-            onChanged: (v) =>
-                saveSettings(context, s.copyWith(openFoldersInTabs: v)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CheckRow(
+                label: l10n.settingsOpenFoldersInTabs,
+                value: s.openFoldersInTabs,
+                onChanged: (v) =>
+                    saveSettings(context, s.copyWith(openFoldersInTabs: v)),
+              ),
+              CheckRow(
+                label: l10n.settingsRestoreTabs,
+                value: s.restoreTabs,
+                onChanged: (v) =>
+                    saveSettings(context, s.copyWith(restoreTabs: v)),
+              ),
+            ],
           ),
         ),
         SettingRow(
@@ -103,6 +115,21 @@ class GeneralSettingsPage extends StatelessWidget {
               null: l10n.languageSystem,
               'en': 'English',
               'vi': 'Tiếng Việt',
+              'zh': '简体中文',
+              'ja': '日本語',
+              'ko': '한국어',
+              'fr': 'Français',
+              'de': 'Deutsch',
+              'es': 'Español',
+              'pt': 'Português',
+              'it': 'Italiano',
+              'ru': 'Русский',
+              'uk': 'Українська',
+              'pl': 'Polski',
+              'nl': 'Nederlands',
+              'tr': 'Türkçe',
+              'id': 'Bahasa Indonesia',
+              'th': 'ไทย',
             },
             onChanged: (v) =>
                 saveSettings(context, s.copyWith(languageCode: () => v)),
@@ -193,6 +220,8 @@ class AdvancedSettingsPage extends StatelessWidget {
           value: s.enterRenames,
           onChanged: (v) => saveSettings(context, s.copyWith(enterRenames: v)),
         ),
+        const SizedBox(height: 16),
+        const UpdatesSection(),
       ],
     );
   }

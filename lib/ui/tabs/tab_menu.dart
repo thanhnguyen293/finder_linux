@@ -10,7 +10,9 @@ import '../widgets/finder_menu.dart';
 Future<void> showTabMenu(BuildContext context, Offset at, int index) async {
   final l10n = AppLocalizations.of(context);
   final cmd = FinderCommands(context);
-  final many = FinderScope.of(context).tabs.tabs.length > 1;
+  final tabs = FinderScope.of(context).tabs;
+  final many = tabs.tabs.length > 1;
+  final tab = tabs.tabs[index];
   PopupMenuItem<VoidCallback> item(String label, VoidCallback? run) =>
       PopupMenuItem(
         value: run,
@@ -33,6 +35,10 @@ Future<void> showTabMenu(BuildContext context, Offset at, int index) async {
       l10n.menuMoveTabToNewWindow,
       many ? () => cmd.moveTabToNewWindow(index) : null,
     ),
+    if (tabs.isInSplit(tab))
+      item(l10n.menuExitSplitView, tabs.unsplit)
+    else
+      item(l10n.menuSplitView, many ? () => tabs.splitWith(tab) : null),
     const PopupMenuDivider(height: 9),
     item(l10n.menuMergeAllWindows, cmd.mergeAllWindows),
   ]);

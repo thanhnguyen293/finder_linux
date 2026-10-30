@@ -517,4 +517,245 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accentGraphite => 'Graphite';
+
+  @override
+  String get splitDropHint => 'Drop to show side by side';
+
+  @override
+  String get menuSplitView => 'Show Side by Side';
+
+  @override
+  String get menuExitSplitView => 'Exit Split View';
+
+  @override
+  String get settingsRestoreTabs => 'Reopen tabs from last time';
+
+  @override
+  String get menuUndo => 'Undo';
+
+  @override
+  String get menuRedo => 'Redo';
+
+  @override
+  String conflictTitle(String name, String folder) {
+    return '“$name” already exists in “$folder”';
+  }
+
+  @override
+  String get conflictBody =>
+      'Do you want to replace it? The item you replace goes to the Trash.';
+
+  @override
+  String get conflictReplace => 'Replace';
+
+  @override
+  String get conflictKeepBoth => 'Keep Both';
+
+  @override
+  String get conflictSkip => 'Skip';
+
+  @override
+  String conflictApplyToAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Do the same for the next $count conflicts',
+      one: 'Do the same for the next conflict',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferCopying(int count, String dest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Copying $count items to “$dest”',
+      one: 'Copying 1 item to “$dest”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMoving(int count, String dest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Moving $count items to “$dest”',
+      one: 'Moving 1 item to “$dest”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferBytes(String done, String total) {
+    return '$done of $total';
+  }
+
+  @override
+  String transferRemaining(String time) {
+    return 'about $time left';
+  }
+
+  @override
+  String get searchIn => 'Search:';
+
+  @override
+  String searchScopeSubfolders(String folder) {
+    return '“$folder” and subfolders';
+  }
+
+  @override
+  String get searchScopeThisFolder => 'This folder only';
+
+  @override
+  String get searchByName => 'Name';
+
+  @override
+  String get searchByContents => 'Name & Contents';
+
+  @override
+  String get searching => 'Searching…';
+
+  @override
+  String get columnLocation => 'Location';
+
+  @override
+  String get tagRed => 'Red';
+
+  @override
+  String get tagOrange => 'Orange';
+
+  @override
+  String get tagYellow => 'Yellow';
+
+  @override
+  String get tagGreen => 'Green';
+
+  @override
+  String get tagBlue => 'Blue';
+
+  @override
+  String get tagPurple => 'Purple';
+
+  @override
+  String get tagGray => 'Gray';
+
+  @override
+  String get sidebarTags => 'Tags';
+
+  @override
+  String taggedIn(String tag, String folder) {
+    return 'Tagged $tag in “$folder”';
+  }
+
+  @override
+  String get tooltipRecentFolders => 'Recent Folders';
+
+  @override
+  String get recentNone => 'No recent folders';
+
+  @override
+  String get menuClearRecents => 'Clear Menu';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String themeEditingFor(String mode) {
+    return 'Colors for the $mode appearance. Light and dark keep their own colors.';
+  }
+
+  @override
+  String get themeAccent => 'Accent';
+
+  @override
+  String get themeSelection => 'Selection';
+
+  @override
+  String get themeFolder => 'Folders';
+
+  @override
+  String get themeWindow => 'Window background';
+
+  @override
+  String get themeSidebar => 'Sidebar';
+
+  @override
+  String get themeToolbar => 'Toolbar';
+
+  @override
+  String get themeReset => 'Use default';
+
+  @override
+  String get themeResetAll => 'Reset All Colors';
+
+  @override
+  String get colorPickerTitle => 'Choose a Color';
+
+  @override
+  String get colorHue => 'Hue';
+
+  @override
+  String get colorSaturation => 'Saturation';
+
+  @override
+  String get colorBrightness => 'Brightness';
+
+  @override
+  String get settingsUpdates => 'Updates';
+
+  @override
+  String get updateAutoCheck => 'Check for updates automatically';
+
+  @override
+  String get updateCheckNow => 'Check Now';
+
+  @override
+  String get updateChecking => 'Checking for updates…';
+
+  @override
+  String get updateUpToDate => 'Finder is up to date.';
+
+  @override
+  String get updateAvailable => 'A new version of Finder is available.';
+
+  @override
+  String get updateInstall => 'Update Now';
+
+  @override
+  String get updateInstalling =>
+      'Downloading and building the update. This can take a few minutes…';
+
+  @override
+  String get updateInstalled => 'The update is installed.';
+
+  @override
+  String get updateRestart => 'Restart Finder';
+
+  @override
+  String updateFailed(String reason) {
+    return 'Couldn\'t update: $reason';
+  }
+
+  @override
+  String get updateUnsupported =>
+      'This build can\'t update itself. Install it with install.sh to get updates.';
+
+  @override
+  String get themeEffects => 'Effects';
+
+  @override
+  String get themeSidebarOpacity => 'Sidebar opacity';
+
+  @override
+  String get themeWindowOpacity => 'Window opacity';
+
+  @override
+  String get themeGlass => 'Glass style for menus, dialogs and panels';
+
+  @override
+  String themeBlurHint(String appId) {
+    return 'To blur the desktop behind Finder, install the GNOME extension “Blur my Shell” and turn it on for $appId.';
+  }
 }

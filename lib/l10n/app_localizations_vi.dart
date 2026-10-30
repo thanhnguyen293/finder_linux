@@ -512,4 +512,242 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get accentGraphite => 'Than chì';
+
+  @override
+  String get splitDropHint => 'Thả để xem song song';
+
+  @override
+  String get menuSplitView => 'Xem song song';
+
+  @override
+  String get menuExitSplitView => 'Thoát chia đôi';
+
+  @override
+  String get settingsRestoreTabs => 'Mở lại các tab của lần trước';
+
+  @override
+  String get menuUndo => 'Hoàn tác';
+
+  @override
+  String get menuRedo => 'Làm lại';
+
+  @override
+  String conflictTitle(String name, String folder) {
+    return '“$name” đã có trong “$folder”';
+  }
+
+  @override
+  String get conflictBody =>
+      'Bạn có muốn thay thế không? Mục bị thay thế sẽ được chuyển vào Thùng rác.';
+
+  @override
+  String get conflictReplace => 'Thay thế';
+
+  @override
+  String get conflictKeepBoth => 'Giữ cả hai';
+
+  @override
+  String get conflictSkip => 'Bỏ qua';
+
+  @override
+  String conflictApplyToAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Làm tương tự cho $count mục trùng còn lại',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferCopying(int count, String dest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Đang sao chép $count mục vào “$dest”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMoving(int count, String dest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Đang di chuyển $count mục vào “$dest”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferBytes(String done, String total) {
+    return '$done / $total';
+  }
+
+  @override
+  String transferRemaining(String time) {
+    return 'còn khoảng $time';
+  }
+
+  @override
+  String get searchIn => 'Tìm trong:';
+
+  @override
+  String searchScopeSubfolders(String folder) {
+    return '“$folder” và thư mục con';
+  }
+
+  @override
+  String get searchScopeThisFolder => 'Chỉ thư mục này';
+
+  @override
+  String get searchByName => 'Tên';
+
+  @override
+  String get searchByContents => 'Tên và nội dung';
+
+  @override
+  String get searching => 'Đang tìm…';
+
+  @override
+  String get columnLocation => 'Vị trí';
+
+  @override
+  String get tagRed => 'Đỏ';
+
+  @override
+  String get tagOrange => 'Cam';
+
+  @override
+  String get tagYellow => 'Vàng';
+
+  @override
+  String get tagGreen => 'Xanh lá';
+
+  @override
+  String get tagBlue => 'Xanh dương';
+
+  @override
+  String get tagPurple => 'Tím';
+
+  @override
+  String get tagGray => 'Xám';
+
+  @override
+  String get sidebarTags => 'Thẻ';
+
+  @override
+  String taggedIn(String tag, String folder) {
+    return 'Thẻ $tag trong “$folder”';
+  }
+
+  @override
+  String get tooltipRecentFolders => 'Thư mục gần đây';
+
+  @override
+  String get recentNone => 'Chưa có thư mục gần đây';
+
+  @override
+  String get menuClearRecents => 'Xóa danh sách';
+
+  @override
+  String get settingsTheme => 'Chủ đề';
+
+  @override
+  String themeEditingFor(String mode) {
+    return 'Màu cho giao diện $mode. Sáng và tối có màu riêng.';
+  }
+
+  @override
+  String get themeAccent => 'Màu nhấn';
+
+  @override
+  String get themeSelection => 'Vùng chọn';
+
+  @override
+  String get themeFolder => 'Thư mục';
+
+  @override
+  String get themeWindow => 'Nền cửa sổ';
+
+  @override
+  String get themeSidebar => 'Thanh bên';
+
+  @override
+  String get themeToolbar => 'Thanh công cụ';
+
+  @override
+  String get themeReset => 'Dùng mặc định';
+
+  @override
+  String get themeResetAll => 'Đặt lại tất cả màu';
+
+  @override
+  String get colorPickerTitle => 'Chọn màu';
+
+  @override
+  String get colorHue => 'Sắc độ';
+
+  @override
+  String get colorSaturation => 'Độ bão hòa';
+
+  @override
+  String get colorBrightness => 'Độ sáng';
+
+  @override
+  String get settingsUpdates => 'Cập nhật';
+
+  @override
+  String get updateAutoCheck => 'Tự động kiểm tra cập nhật';
+
+  @override
+  String get updateCheckNow => 'Kiểm tra ngay';
+
+  @override
+  String get updateChecking => 'Đang kiểm tra cập nhật…';
+
+  @override
+  String get updateUpToDate => 'Finder đã là bản mới nhất.';
+
+  @override
+  String get updateAvailable => 'Đã có phiên bản Finder mới.';
+
+  @override
+  String get updateInstall => 'Cập nhật ngay';
+
+  @override
+  String get updateInstalling =>
+      'Đang tải và build bản cập nhật. Có thể mất vài phút…';
+
+  @override
+  String get updateInstalled => 'Đã cài bản cập nhật.';
+
+  @override
+  String get updateRestart => 'Khởi động lại Finder';
+
+  @override
+  String updateFailed(String reason) {
+    return 'Không cập nhật được: $reason';
+  }
+
+  @override
+  String get updateUnsupported =>
+      'Bản build này không tự cập nhật được. Hãy cài bằng install.sh để nhận cập nhật.';
+
+  @override
+  String get themeEffects => 'Hiệu ứng';
+
+  @override
+  String get themeSidebarOpacity => 'Độ đục thanh bên';
+
+  @override
+  String get themeWindowOpacity => 'Độ đục cửa sổ';
+
+  @override
+  String get themeGlass => 'Kiểu kính cho menu, hộp thoại và bảng nổi';
+
+  @override
+  String themeBlurHint(String appId) {
+    return 'Để làm mờ hình nền phía sau Finder, cài extension GNOME “Blur my Shell” và bật nó cho $appId.';
+  }
 }

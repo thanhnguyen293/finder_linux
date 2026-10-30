@@ -1,4 +1,5 @@
 import 'package:finder_linux/state/drop_rules.dart';
+import 'package:finder_linux/ui/dnd/drag_auto_scroll.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -46,5 +47,15 @@ void main() {
   test('Trash takes moves only', () {
     expect(decide(local: ['/src/a'], trash: true), DropAction.move);
     expect(decide(trash: true, move: false), DropAction.none);
+  });
+
+  test('auto-scroll speeds up toward the edges and rests in the middle', () {
+    expect(autoScrollStep(200, 600, 50), 0);
+    expect(autoScrollStep(0, 600, 50), lessThan(-20));
+    expect(autoScrollStep(40, 600, 50), inInclusiveRange(-5, -0.1));
+    expect(autoScrollStep(600, 600, 50), greaterThan(20));
+    expect(autoScrollStep(560, 600, 50), inInclusiveRange(0.1, 5));
+    // Views too small for two bands never scroll.
+    expect(autoScrollStep(10, 80, 50), 0);
   });
 }

@@ -45,6 +45,18 @@ mixin SelectionMixin on ChangeNotifier {
     notifyListeners();
   }
 
+  /// Selects exactly [paths] (a selection rectangle); notifies only when
+  /// the selection changed, as the rectangle reports on every move.
+  void selectPaths(Set<String> paths) {
+    if (setEquals(paths, _selection)) return;
+    _selection
+      ..clear()
+      ..addAll(paths);
+    _anchor = paths.isEmpty ? null : paths.first;
+    _cursor = _anchor;
+    notifyListeners();
+  }
+
   void selectAll() {
     _selection
       ..clear()

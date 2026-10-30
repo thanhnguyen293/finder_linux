@@ -5,8 +5,23 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_id.dart';
+import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
+import 'app_localizations_ko.dart';
+import 'app_localizations_nl.dart';
+import 'app_localizations_pl.dart';
+import 'app_localizations_pt.dart';
+import 'app_localizations_ru.dart';
+import 'app_localizations_th.dart';
+import 'app_localizations_tr.dart';
+import 'app_localizations_uk.dart';
 import 'app_localizations_vi.dart';
+import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -94,8 +109,23 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
+    Locale('es'),
+    Locale('fr'),
+    Locale('id'),
+    Locale('it'),
+    Locale('ja'),
+    Locale('ko'),
+    Locale('nl'),
+    Locale('pl'),
+    Locale('pt'),
+    Locale('ru'),
+    Locale('th'),
+    Locale('tr'),
+    Locale('uk'),
     Locale('vi'),
+    Locale('zh'),
   ];
 
   /// No description provided for @appTitle.
@@ -997,6 +1027,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Graphite'**
   String get accentGraphite;
+
+  /// No description provided for @splitDropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to show side by side'**
+  String get splitDropHint;
+
+  /// No description provided for @menuSplitView.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Side by Side'**
+  String get menuSplitView;
+
+  /// No description provided for @menuExitSplitView.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Split View'**
+  String get menuExitSplitView;
+
+  /// No description provided for @settingsRestoreTabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen tabs from last time'**
+  String get settingsRestoreTabs;
+
+  /// No description provided for @menuUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get menuUndo;
+
+  /// No description provided for @menuRedo.
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get menuRedo;
+
+  /// No description provided for @conflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” already exists in “{folder}”'**
+  String conflictTitle(String name, String folder);
+
+  /// No description provided for @conflictBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to replace it? The item you replace goes to the Trash.'**
+  String get conflictBody;
+
+  /// No description provided for @conflictReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get conflictReplace;
+
+  /// No description provided for @conflictKeepBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Both'**
+  String get conflictKeepBoth;
+
+  /// No description provided for @conflictSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get conflictSkip;
+
+  /// No description provided for @conflictApplyToAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Do the same for the next conflict} other{Do the same for the next {count} conflicts}}'**
+  String conflictApplyToAll(int count);
+
+  /// No description provided for @transferCopying.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Copying 1 item to “{dest}”} other{Copying {count} items to “{dest}”}}'**
+  String transferCopying(int count, String dest);
+
+  /// No description provided for @transferMoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Moving 1 item to “{dest}”} other{Moving {count} items to “{dest}”}}'**
+  String transferMoving(int count, String dest);
+
+  /// No description provided for @transferBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String transferBytes(String done, String total);
+
+  /// No description provided for @transferRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'about {time} left'**
+  String transferRemaining(String time);
+
+  /// No description provided for @searchIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Search:'**
+  String get searchIn;
+
+  /// No description provided for @searchScopeSubfolders.
+  ///
+  /// In en, this message translates to:
+  /// **'“{folder}” and subfolders'**
+  String searchScopeSubfolders(String folder);
+
+  /// No description provided for @searchScopeThisFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder only'**
+  String get searchScopeThisFolder;
+
+  /// No description provided for @searchByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get searchByName;
+
+  /// No description provided for @searchByContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Name & Contents'**
+  String get searchByContents;
+
+  /// No description provided for @searching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get searching;
+
+  /// No description provided for @columnLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get columnLocation;
+
+  /// No description provided for @tagRed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get tagRed;
+
+  /// No description provided for @tagOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get tagOrange;
+
+  /// No description provided for @tagYellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get tagYellow;
+
+  /// No description provided for @tagGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get tagGreen;
+
+  /// No description provided for @tagBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get tagBlue;
+
+  /// No description provided for @tagPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get tagPurple;
+
+  /// No description provided for @tagGray.
+  ///
+  /// In en, this message translates to:
+  /// **'Gray'**
+  String get tagGray;
+
+  /// No description provided for @sidebarTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get sidebarTags;
+
+  /// No description provided for @taggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Tagged {tag} in “{folder}”'**
+  String taggedIn(String tag, String folder);
+
+  /// No description provided for @tooltipRecentFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Folders'**
+  String get tooltipRecentFolders;
+
+  /// No description provided for @recentNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent folders'**
+  String get recentNone;
+
+  /// No description provided for @menuClearRecents.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Menu'**
+  String get menuClearRecents;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// No description provided for @themeEditingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Colors for the {mode} appearance. Light and dark keep their own colors.'**
+  String themeEditingFor(String mode);
+
+  /// No description provided for @themeAccent.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent'**
+  String get themeAccent;
+
+  /// No description provided for @themeSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection'**
+  String get themeSelection;
+
+  /// No description provided for @themeFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get themeFolder;
+
+  /// No description provided for @themeWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Window background'**
+  String get themeWindow;
+
+  /// No description provided for @themeSidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar'**
+  String get themeSidebar;
+
+  /// No description provided for @themeToolbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Toolbar'**
+  String get themeToolbar;
+
+  /// No description provided for @themeReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Use default'**
+  String get themeReset;
+
+  /// No description provided for @themeResetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset All Colors'**
+  String get themeResetAll;
+
+  /// No description provided for @colorPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Color'**
+  String get colorPickerTitle;
+
+  /// No description provided for @colorHue.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get colorHue;
+
+  /// No description provided for @colorSaturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get colorSaturation;
+
+  /// No description provided for @colorBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get colorBrightness;
+
+  /// No description provided for @settingsUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates'**
+  String get settingsUpdates;
+
+  /// No description provided for @updateAutoCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates automatically'**
+  String get updateAutoCheck;
+
+  /// No description provided for @updateCheckNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Now'**
+  String get updateCheckNow;
+
+  /// No description provided for @updateChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for updates…'**
+  String get updateChecking;
+
+  /// No description provided for @updateUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Finder is up to date.'**
+  String get updateUpToDate;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version of Finder is available.'**
+  String get updateAvailable;
+
+  /// No description provided for @updateInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateInstall;
+
+  /// No description provided for @updateInstalling.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading and building the update. This can take a few minutes…'**
+  String get updateInstalling;
+
+  /// No description provided for @updateInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'The update is installed.'**
+  String get updateInstalled;
+
+  /// No description provided for @updateRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart Finder'**
+  String get updateRestart;
+
+  /// No description provided for @updateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update: {reason}'**
+  String updateFailed(String reason);
+
+  /// No description provided for @updateUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This build can\'t update itself. Install it with install.sh to get updates.'**
+  String get updateUnsupported;
+
+  /// No description provided for @themeEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Effects'**
+  String get themeEffects;
+
+  /// No description provided for @themeSidebarOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar opacity'**
+  String get themeSidebarOpacity;
+
+  /// No description provided for @themeWindowOpacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Window opacity'**
+  String get themeWindowOpacity;
+
+  /// No description provided for @themeGlass.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass style for menus, dialogs and panels'**
+  String get themeGlass;
+
+  /// No description provided for @themeBlurHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To blur the desktop behind Finder, install the GNOME extension “Blur my Shell” and turn it on for {appId}.'**
+  String themeBlurHint(String appId);
 }
 
 class _AppLocalizationsDelegate
@@ -1009,8 +1435,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'vi'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'de',
+    'en',
+    'es',
+    'fr',
+    'id',
+    'it',
+    'ja',
+    'ko',
+    'nl',
+    'pl',
+    'pt',
+    'ru',
+    'th',
+    'tr',
+    'uk',
+    'vi',
+    'zh',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -1019,10 +1462,40 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'id':
+      return AppLocalizationsId();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
+    case 'ko':
+      return AppLocalizationsKo();
+    case 'nl':
+      return AppLocalizationsNl();
+    case 'pl':
+      return AppLocalizationsPl();
+    case 'pt':
+      return AppLocalizationsPt();
+    case 'ru':
+      return AppLocalizationsRu();
+    case 'th':
+      return AppLocalizationsTh();
+    case 'tr':
+      return AppLocalizationsTr();
+    case 'uk':
+      return AppLocalizationsUk();
     case 'vi':
       return AppLocalizationsVi();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(

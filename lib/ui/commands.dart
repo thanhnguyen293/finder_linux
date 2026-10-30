@@ -7,10 +7,14 @@ import '../models/sort_spec.dart';
 import '../services/window_registry.dart';
 import '../state/browser_controller.dart';
 import '../l10n/app_localizations.dart';
+import '../models/finder_settings.dart';
+import '../models/tag_color.dart';
 import '../models/file_entry.dart';
+import 'dialogs/conflict_dialog.dart';
 import 'dialogs/quick_look.dart';
 import 'dialogs/simple_dialogs.dart';
 import 'finder_scope.dart';
+import 'settings/settings_controls.dart';
 import 'settings/settings_dialog.dart';
 import 'settings_scope.dart';
 
@@ -25,12 +29,20 @@ class FinderCommands {
   AppLocalizations get _l10n => AppLocalizations.of(context);
 
   Future<void> newFolder() => _s.actions.newFolder(_l10n.untitledFolder);
-  Future<void> paste() => _s.actions.paste(copySuffix: _l10n.copySuffix);
+  Future<void> paste() => _s.actions.paste(
+    copySuffix: _l10n.copySuffix,
+    resolve: conflictResolver(context),
+  );
+  Future<void> undo() => _s.actions.undo();
+  Future<void> redo() => _s.actions.redo();
   Future<void> duplicate() =>
       _s.actions.duplicate(copySuffix: _l10n.copySuffix);
   Future<void> openInTerminal([String? dir]) =>
       _s.browser.fs.openTerminal(dir ?? _s.browser.path);
-  Future<void> newWindow() => _s.browser.fs.openNewWindow(_s.browser.path);
+
+  /// Ctrl+N: a fresh window at the default folder, as in Finder (not a
+  /// copy of this one).
+  Future<void> newWindow() => _s.window.openWindow();
 
   /// Delete key: Trash normally, permanent delete (confirmed) inside Trash.
   Future<void> delete() async {
@@ -72,7 +84,7 @@ class FinderCommands {
   void closeOtherTabs(int index) => _s.tabs.closeOthers(index);
 
   Future<void> moveTabToNewWindow(int index) async {
-    await _s.browser.fs.openNewWindow(_s.tabs.tabs[index].browser.path);
+    await _s.window.openWindow(_s.tabs.tabs[index].browser.path);
     closeTab(index);
   }
 
@@ -119,13 +131,18 @@ class FinderCommands {
   }
 
   Future<void> goToFolder() async {
-    final browser = _s.browser;
     final target = await askGoToFolder(
       context,
       home: _s.sidebar.home,
-      current: browser.path,
+      current: _s.browser.path,
     );
-    if (target == null) return;
+    if (target != null) await openLocation(target);
+  }
+
+  /// Opens a typed location: a folder, or a file shown selected in its
+  /// folder.
+  Future<void> openLocation(String target) async {
+    final browser = _s.browser;
     if (browser.fs.isDirectory(target)) {
       await browser.navigate(target);
     } else if (await browser.fs.entry(target) != null) {
@@ -140,6 +157,31 @@ class FinderCommands {
   /// first column of the column view.
   Future<void> goTo(String path) async {
     await _s.browser.navigate(path, root: path);
+    _s.contentFocus.requestFocus();
+  }
+
+  /// Ctrl + / Ctrl − / Ctrl 0: text size, as in a browser.
+  Future<void> zoomText(int steps) {
+    final s = SettingsScope.read(context).value;
+    final size = steps == 0 ? defaultTextSize : stepTextSize(s.textSize, steps);
+    return saveSettings(context, s.copyWith(textSize: size));
+  }
+
+  /// Ctrl+L: type a location in the path bar, or in a dialog when the
+  /// path bar is hidden.
+  Future<void> editLocation() async {
+    if (SettingsScope.read(context).value.showPathBar) {
+      _s.browser.setEditingLocation(true);
+    } else {
+      await goToFolder();
+    }
+  }
+
+  /// Lists every file in Home tagged [tag], as a sidebar tag does.
+  Future<void> showTagged(TagColor tag) async {
+    final home = _s.sidebar.home;
+    if (_s.browser.path != home) await _s.browser.navigate(home, root: home);
+    _s.browser.showTagged(tag);
     _s.contentFocus.requestFocus();
   }
 

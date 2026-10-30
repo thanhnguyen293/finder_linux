@@ -1,9 +1,11 @@
 import 'package:finder_linux/models/file_entry.dart';
 import 'package:finder_linux/models/place.dart';
 import 'package:finder_linux/models/sort_spec.dart';
+import 'package:finder_linux/services/clipboard_service.dart';
 import 'package:finder_linux/services/places_service.dart';
 import 'package:finder_linux/ui/dialogs/simple_dialogs.dart';
 import 'package:finder_linux/ui/formatting.dart';
+import 'package:finder_linux/ui/views/file_list_columns.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 FileEntry entry(String name, {bool dir = false, int size = 0, int day = 1}) =>
@@ -112,6 +114,41 @@ tmpfs /run/user/1000 tmpfs rw 0 0
     test('permissionString', () {
       expect(permissionString(0x1ed), 'rwxr-xr-x');
       expect(permissionString(0x1a4), 'rw-r--r--');
+    });
+  });
+
+  test('list view drops Kind, then Date, then Size as it narrows', () {
+    expect(listColumnsFor(1000), (date: true, size: true, kind: true));
+    expect(listColumnsFor(600), (date: true, size: true, kind: false));
+    expect(listColumnsFor(400), (date: false, size: true, kind: false));
+    expect(listColumnsFor(250), (date: false, size: false, kind: false));
+  });
+
+  group('clipboard formats', () {
+    test('GNOME copied-files round trip, incl. spaces and accents', () {
+      const clip = (paths: ['/home/u/Tài liệu/a b.txt', '/tmp/x'], cut: true);
+      final data = encodeGnomeFiles(clip);
+      expect(data.split('\n').first, 'cut');
+      expect(
+        data,
+        contains('file:///home/u/T%C3%A0i%20li%E1%BB%87u/a%20b.txt'),
+      );
+      final back = decodeGnomeFiles(data);
+      expect(back?.paths, clip.paths);
+      expect(back?.cut, isTrue);
+    });
+
+    test('Nautilus copy and uri-list from other apps', () {
+      expect(decodeGnomeFiles('copy\nfile:///srv/a.txt\n')?.paths, [
+        '/srv/a.txt',
+      ]);
+      expect(decodeGnomeFiles('hello'), isNull);
+      final list = decodeUriList(
+        '# comment\r\nfile:///srv/a.txt\r\nhttps://example.com\r\n',
+      );
+      expect(list?.paths, ['/srv/a.txt']);
+      expect(list?.cut, isFalse);
+      expect(decodeUriList('https://example.com'), isNull);
     });
   });
 }

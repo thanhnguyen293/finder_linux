@@ -20,3 +20,15 @@ import 'package:path/path.dart' as p;
     _ => (p.dirname(path), path),
   };
 }
+
+/// The window number the GTK runner gives each window (`--window-index=N`,
+/// counting from 0 per process); 0 when absent.
+int windowIndexOf(List<String> args) {
+  const prefix = '--window-index=';
+  for (final a in args) {
+    if (a.startsWith(prefix)) {
+      return int.tryParse(a.substring(prefix.length)) ?? 0;
+    }
+  }
+  return 0;
+}

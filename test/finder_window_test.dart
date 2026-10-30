@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:finder_linux/core/result.dart';
 import 'package:finder_linux/main.dart';
+import 'package:finder_linux/ui/tabs/tab_strip.dart';
+import 'package:finder_linux/ui/tab_pane.dart';
+import 'package:finder_linux/ui/tabs/tab_drag_ghost.dart';
 import 'package:finder_linux/ui/widgets/bottom_bars.dart';
+import 'package:finder_linux/ui/widgets/path_bar.dart';
 import 'package:finder_linux/ui/views/view_common.dart';
 import 'package:finder_linux/ui/finder_scope.dart';
 import 'package:finder_linux/ui/content_area.dart';
@@ -32,6 +37,7 @@ class _NoDiskStatsFs extends FileSystemService {
 
   // `mv` can't finish inside the fake-async zone; a rename does the same
   // for these same-filesystem test moves.
+
   @override
   Future<Result<List<String>>> moveInto(List<String> paths, String dest) async {
     final moved = [
@@ -384,7 +390,7 @@ void main() {
     await settleIo(tester);
     expect(find.byTooltip('Close Tab'), findsWidgets);
     final tabTitles = find.descendant(
-      of: find.byType(ReorderableListView),
+      of: find.byType(TabStrip),
       matching: find.byType(Text),
     );
     await click(tester.getCenter(tabTitles.first));
@@ -496,6 +502,316 @@ void main() {
     await press.up();
     await settleIo(tester);
     expect(b.selection, {p.join(root.path, 'a.txt')});
+
+    await tester.pumpWidget(const SizedBox());
+    await settleIo(tester);
+  });
+
+  testWidgets('drag a tab right to split, down to tear it off', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final calls = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('finder/window'),
+      (call) async {
+        calls.add(call.method);
+        return null;
+      },
+    );
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
+      ),
+    );
+    await settleIo(tester);
+    final scope = FinderScope.of(tester.element(find.byType(ContentArea)));
+    final docs = scope.tabs.open(p.join(root.path, 'Docs'));
+    await settleIo(tester);
+
+    // Drag the Docs tab with the mouse over the right half of the content:
+    // the drop zone shows, and releasing there splits the window.
+    final tabTitle = find.descendant(
+      of: find.byType(TabStrip),
+      matching: find.text('Docs'),
+    );
+    final drag = await tester.startGesture(
+      tester.getCenter(tabTitle),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump();
+    await drag.moveBy(const Offset(0, 30));
+    await tester.pump();
+    await drag.moveTo(const Offset(1000, 400));
+    await tester.pump();
+    expect(find.text('Drop to show side by side'), findsOneWidget);
+    // Away from the strip the tab floats under the pointer.
+    final ghost = find.descendant(
+      of: find.byType(TabDragGhost),
+      matching: find.text('Docs'),
+    );
+    expect(ghost, findsOneWidget);
+    expect(
+      (tester.getCenter(ghost) - const Offset(1000, 400)).distance,
+      lessThan(80),
+      reason: 'follows the pointer, not just sideways',
+    );
+    await drag.up();
+    await tester.pumpAndSettle();
+    await settleIo(tester);
+    expect(find.byType(TabPane), findsNWidgets(2));
+    expect(find.text('Nested'), findsOneWidget, reason: 'Docs on the right');
+    expect(find.text('a.txt'), findsOneWidget, reason: 'home on the left');
+
+    // Clicking the left pane makes its tab the active one.
+    await tester.tap(find.text('a.txt'));
+    await tester.pump();
+    expect(scope.tabs.active.browser.path, root.path);
+
+    scope.tabs.unsplit();
+    await settleIo(tester);
+    expect(find.byType(TabPane), findsOneWidget);
+
+    // Release a tab far below the strip, left of the split zone: tear off.
+    scope.tabDrag.start(docs);
+    scope.tabDrag.move(const Offset(300, 600), strip: null);
+    scope.tabDrag.release();
+    await settleIo(tester);
+    expect(scope.tabs.tabs, hasLength(1));
+    expect(scope.tabs.tabs.single.browser.path, root.path);
+
+    await tester.pumpWidget(const SizedBox());
+    await settleIo(tester);
+  });
+
+  testWidgets('dragging a tab along the strip reorders it, Chrome-style', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
+      ),
+    );
+    await settleIo(tester);
+    final scope = FinderScope.of(tester.element(find.byType(ContentArea)));
+    final docs = scope.tabs.open(p.join(root.path, 'Docs'));
+    await settleIo(tester);
+    final docsTab = find.descendant(
+      of: find.byType(TabStrip),
+      matching: find.text('Docs'),
+    );
+    final start = tester.getCenter(docsTab);
+
+    // Drag Docs left over the first tab: it follows the pointer and the
+    // first tab slides right to make room.
+    final drag = await tester.startGesture(
+      start,
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump();
+    await drag.moveBy(const Offset(-20, 0));
+    await tester.pump();
+    await drag.moveTo(start - const Offset(220, 0));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      (tester.getCenter(docsTab) - (start - const Offset(220, 0))).distance,
+      lessThan(4),
+      reason: 'the dragged tab sticks to the pointer',
+    );
+    await drag.up();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(scope.tabs.tabs.first, docs);
+
+    await tester.pumpWidget(const SizedBox());
+    await settleIo(tester);
+  });
+
+  testWidgets('dragging on empty space selects with a rectangle', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    File(p.join(root.path, 'b.txt')).writeAsStringSync('b');
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(viewMode: ViewMode.list),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
+      ),
+    );
+    await settleIo(tester);
+    final scope = FinderScope.of(tester.element(find.byType(ContentArea)));
+    expect(scope.browser.entries.map((e) => e.name), [
+      'Docs',
+      'a.txt',
+      'b.txt',
+    ]);
+
+    // From the empty space below the rows up into the second row.
+    final rows = find.byType(ListView).last;
+    final below = tester.getBottomLeft(rows) + const Offset(400, -40);
+    final aTxt = tester.getCenter(find.text('a.txt'));
+    final gesture = await tester.startGesture(below);
+    await gesture.moveTo(Offset(below.dx, aTxt.dy - 2));
+    await tester.pump();
+    await gesture.moveTo(Offset(below.dx - 300, aTxt.dy));
+    await tester.pump();
+    expect(scope.browser.selection, {
+      p.join(root.path, 'a.txt'),
+      p.join(root.path, 'b.txt'),
+    });
+    await gesture.up();
+    await tester.pump();
+    expect(scope.browser.selection, hasLength(2), reason: 'kept on release');
+  });
+
+  testWidgets('a later launch opens its folder here as a tab', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
+      ),
+    );
+    await settleIo(tester);
+
+    // What the GTK runner sends the active window for `finder <args>`.
+    Future<Object?> launch(List<String> args) async {
+      const codec = StandardMethodCodec();
+      ByteData? reply;
+      await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        'finder/window',
+        codec.encodeMethodCall(MethodCall('launch', args)),
+        (data) => reply = data,
+      );
+      return reply == null ? null : codec.decodeEnvelope(reply!);
+    }
+
+    final scope = FinderScope.of(tester.element(find.byType(ContentArea)));
+    final docs = p.join(root.path, 'Docs');
+    expect(await launch([docs]), isTrue);
+    await settleIo(tester);
+    expect(scope.tabs.tabs, hasLength(2));
+    expect(scope.tabs.active.browser.path, docs);
+
+    // A window asked for, or no folder at all: GTK opens a new window.
+    expect(await launch(['--new-window', docs]), isFalse);
+    expect(await launch(const []), isFalse);
+    expect(scope.tabs.tabs, hasLength(2));
+  });
+
+  testWidgets('reopens the saved tabs with their views', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
+        restoredSession: (
+          tabs: [
+            (path: root.path, viewMode: 'icons'),
+            (path: p.join(root.path, 'Docs'), viewMode: 'list'),
+          ],
+          active: 1,
+        ),
+      ),
+    );
+    await settleIo(tester);
+    final scope = FinderScope.of(tester.element(find.byType(ContentArea)));
+    expect(scope.tabs.tabs, hasLength(2));
+    expect(scope.tabs.active.browser.path, p.join(root.path, 'Docs'));
+    expect(scope.tabs.active.browser.viewMode, ViewMode.list);
+
+    await tester.pumpWidget(const SizedBox());
+    await settleIo(tester);
+  });
+
+  testWidgets('paste over an existing name asks; Ctrl+Z undoes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    File(p.join(root.path, 'Docs', 'a.txt')).writeAsStringSync('old');
+    await tester.pumpWidget(
+      FinderApp(
+        places: PlacesService(
+          environment: {'HOME': root.path, 'USER': 'tester'},
+        ),
+        settings: SettingsController(
+          SettingsStore(environment: {'XDG_CONFIG_HOME': root.path}),
+          const FinderSettings(),
+        ),
+        initialPath: root.path,
+        fs: const _NoDiskStatsFs(),
+        nativeDragAndDrop: false,
+      ),
+    );
+    await settleIo(tester);
+    await tester.tap(find.text('a.txt'));
+    await tester.pump();
+    await ctrl(tester, LogicalKeyboardKey.keyC);
+    final scope = FinderScope.of(tester.element(find.byType(ContentArea)));
+    unawaited(scope.browser.navigate(p.join(root.path, 'Docs')));
+    await settleIo(tester);
+
+    await ctrl(tester, LogicalKeyboardKey.keyV);
+    await settleIo(tester);
+    expect(find.text('Keep Both'), findsOneWidget);
+    await tester.tap(find.text('Keep Both'));
+    await settleIo(tester);
+    await settleIo(tester);
+    expect(File(p.join(root.path, 'Docs', 'a 2.txt')).existsSync(), isTrue);
+    expect(File(p.join(root.path, 'Docs', 'a.txt')).readAsStringSync(), 'old');
+    expect(scope.actions.history.canUndo, isTrue);
 
     await tester.pumpWidget(const SizedBox());
     await settleIo(tester);

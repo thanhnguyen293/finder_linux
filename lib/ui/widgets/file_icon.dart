@@ -4,7 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 
 import '../../models/file_entry.dart';
+import '../../services/thumbnail_service.dart';
 import '../../theme/finder_theme.dart';
+import '../app_services.dart';
 import '../settings_scope.dart';
 
 /// Icon artwork tint per file kind.
@@ -49,7 +51,8 @@ class FileIcon extends StatelessWidget {
   final FileEntry entry;
   final double size;
 
-  /// Render image files as a scaled-down preview (icon and column views).
+  /// Render a preview of the file's content: images directly; PDFs,
+  /// videos, documents and other formats through [ThumbnailService].
   final bool thumbnail;
 
   @override
@@ -74,23 +77,101 @@ class FileIcon extends StatelessWidget {
             glyph: glyph,
             label: entry.extension,
           );
-    if (!thumbnail ||
-        !SettingsScope.of(context).showThumbnails ||
-        entry.kind != FileKind.image ||
-        entry.extension == 'svg') {
-      return page;
+    if (!thumbnail || !SettingsScope.of(context).showThumbnails) return page;
+    if (flutterDecodableImages.contains(entry.extension)) {
+      return _Thumbnail(file: entry.path, size: size, fallback: page);
     }
+    final service = AppServices.thumbnailsOf(context);
+    if (service == null || !service.handles(entry)) return page;
+    return _GeneratedThumbnail(
+      service: service,
+      entry: entry,
+      size: size,
+      fallback: page,
+    );
+  }
+}
+
+/// Waits for [ThumbnailService] to make a preview, showing [fallback]
+/// meanwhile and if none can be made.
+class _GeneratedThumbnail extends StatefulWidget {
+  const _GeneratedThumbnail({
+    required this.service,
+    required this.entry,
+    required this.size,
+    required this.fallback,
+  });
+
+  final ThumbnailService service;
+  final FileEntry entry;
+  final double size;
+  final Widget fallback;
+
+  @override
+  State<_GeneratedThumbnail> createState() => _GeneratedThumbnailState();
+}
+
+class _GeneratedThumbnailState extends State<_GeneratedThumbnail> {
+  String? _file;
+
+  @override
+  void initState() {
+    super.initState();
+    _request();
+  }
+
+  @override
+  void didUpdateWidget(_GeneratedThumbnail old) {
+    super.didUpdateWidget(old);
+    if (old.entry != widget.entry) _request();
+  }
+
+  void _request() {
+    final entry = widget.entry;
+    _file = widget.service.cached(entry);
+    if (_file != null) return;
+    widget.service.thumbnailFor(entry).then((file) {
+      if (mounted && widget.entry == entry && file != null) {
+        setState(() => _file = file);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => switch (_file) {
+    final file? => _Thumbnail(
+      file: file,
+      size: widget.size,
+      fallback: widget.fallback,
+    ),
+    null => widget.fallback,
+  };
+}
+
+class _Thumbnail extends StatelessWidget {
+  const _Thumbnail({
+    required this.file,
+    required this.size,
+    required this.fallback,
+  });
+
+  final String file;
+  final double size;
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
       child: Image.file(
-        File(entry.path),
+        File(file),
         // At least 32px decoded, so tiny row thumbnails stay crisp.
         cacheWidth:
             (math.max(size, 32) * MediaQuery.devicePixelRatioOf(context) * 1.5)
                 .round(),
         fit: BoxFit.contain,
         filterQuality: FilterQuality.medium,
-        errorBuilder: (_, _, _) => page,
+        errorBuilder: (_, _, _) => fallback,
         // Fade the thumbnail in over an empty slot; swapping a document icon
         // for the picture read as a flicker.
         frameBuilder: (_, child, frame, wasSynchronouslyLoaded) =>

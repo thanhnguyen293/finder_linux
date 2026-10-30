@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
+import 'tag_color.dart';
+
 enum FileKind {
   folder,
   image,
@@ -104,6 +106,7 @@ class FileEntry {
     required this.modified,
     required this.mode,
     this.isSymlink = false,
+    this.tags = const [],
   });
 
   final String path;
@@ -114,6 +117,19 @@ class FileEntry {
   /// POSIX permission bits as reported by `stat`.
   final int mode;
   final bool isSymlink;
+
+  /// Tags from the `user.xdg.tags` attribute, including ones from other
+  /// apps that aren't Finder colors.
+  final List<String> tags;
+
+  /// The color tags among [tags], in Finder's order.
+  List<TagColor> get colorTags {
+    final colors = {for (final t in tags) ?TagColor.fromTag(t)};
+    return [
+      for (final c in TagColor.values)
+        if (colors.contains(c)) c,
+    ];
+  }
 
   String get name => p.basename(path);
   String get parent => p.dirname(path);
@@ -137,8 +153,16 @@ class FileEntry {
       other.isDirectory == isDirectory &&
       other.size == size &&
       other.modified == modified &&
-      other.mode == mode;
+      other.mode == mode &&
+      listEquals(other.tags, tags);
 
   @override
-  int get hashCode => Object.hash(path, isDirectory, size, modified, mode);
+  int get hashCode => Object.hash(
+    path,
+    isDirectory,
+    size,
+    modified,
+    mode,
+    Object.hashAll(tags),
+  );
 }

@@ -15,6 +15,11 @@ dependencies:
   intl: any
   path: ^1.9.0
   super_drag_and_drop: ^0.9.1
+  super_clipboard: ^0.9.1
+  crypto: ^3.0.8
+  ffi: ^2.2.0
+  super_native_extensions: ^0.9.1
+  irondash_message_channel: ^0.7.0
 
 dev_dependencies:
   flutter_test:
@@ -24,3 +29,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+# Patched copy (see third_party/irondash_message_channel, `_isolateIdObject`):
+# lets several Flutter engines (Finder windows) share one process.
+dependency_overrides:
+  irondash_message_channel:
+    path: third_party/irondash_message_channel

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 
+import '../../core/locations.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/file_entry.dart';
 import '../../services/file_system_service.dart';
@@ -49,15 +49,8 @@ Future<String?> askGoToFolder(
 }) {
   final l10n = AppLocalizations.of(context);
   final controller = TextEditingController();
-  String resolve(String raw) {
-    final text = raw.trim();
-    final expanded = text == '~' || text.startsWith('~/')
-        ? home + text.substring(1)
-        : text;
-    return p.normalize(
-      p.isAbsolute(expanded) ? expanded : p.join(current, expanded),
-    );
-  }
+  String resolve(String raw) =>
+      resolveLocation(raw, home: home, current: current);
 
   return showDialog<String>(
     context: context,

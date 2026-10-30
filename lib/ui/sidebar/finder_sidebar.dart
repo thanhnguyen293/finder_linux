@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/place.dart';
+import '../../models/tag_color.dart';
 import '../../theme/finder_theme.dart';
 import '../commands.dart';
 import '../dnd/file_drag.dart';
@@ -11,6 +12,8 @@ import '../settings/settings_dialog.dart';
 import '../settings_scope.dart';
 import '../widgets/context_menus.dart';
 import '../widgets/hover_button.dart';
+import '../widgets/tag_dots.dart';
+import '../widgets/tag_picker.dart';
 
 /// Sidebar glyph for each kind of place (also used in Settings).
 /// Sidebar glyph for each kind of place (also used in Settings).
@@ -60,7 +63,10 @@ class FinderSidebar extends StatelessWidget {
                     if (locations.isNotEmpty) ...[
                       _SectionHeader(l10n.sectionLocations),
                       for (final place in locations) _PlaceRow(place: place),
+                      const SizedBox(height: 14),
                     ],
+                    _SectionHeader(l10n.sidebarTags),
+                    for (final tag in TagColor.values) _TagRow(tag: tag),
                   ],
                 );
               },
@@ -182,6 +188,70 @@ class _PlaceRowState extends State<_PlaceRow> {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A color in the sidebar's Tags section; lists the files carrying it.
+class _TagRow extends StatefulWidget {
+  const _TagRow({required this.tag});
+
+  final TagColor tag;
+
+  @override
+  State<_TagRow> createState() => _TagRowState();
+}
+
+class _TagRowState extends State<_TagRow> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final selected = FinderScope.of(context).browser.tag == widget.tag;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FinderCommands(context).showTagged(widget.tag),
+        child: Container(
+          height: context.scaled(FinderMetrics.sidebarRowHeight),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: selected
+                ? palette.sidebarSelection
+                : (_hover ? palette.controlHover : null),
+            borderRadius: BorderRadius.circular(FinderMetrics.radiusSmall),
+          ),
+          child: Row(
+            spacing: 8,
+            children: [
+              SizedBox(
+                width: 16,
+                child: Center(
+                  child: TagDots(
+                    tags: [widget.tag],
+                    size: 11,
+                    ring: tagSwatch(widget.tag),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  tagLabel(AppLocalizations.of(context), widget.tag),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: FinderMetrics.fontSize,
+                    color: palette.textPrimary,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

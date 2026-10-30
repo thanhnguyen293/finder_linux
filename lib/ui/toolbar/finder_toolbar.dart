@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -8,6 +9,7 @@ import '../finder_scope.dart';
 import '../widgets/finder_menu.dart';
 import '../widgets/hover_button.dart';
 import '../widgets/window_drag_area.dart';
+import 'history_menus.dart';
 import 'search_field.dart';
 
 class FinderToolbar extends StatelessWidget {
@@ -39,16 +41,28 @@ class FinderToolbar extends StatelessWidget {
               final b = scope.browser;
               return Row(
                 children: [
-                  HoverButton(
-                    tooltip: l10n.tooltipBack,
-                    onPressed: b.canGoBack ? b.back : null,
-                    child: const Icon(CupertinoIcons.chevron_left),
+                  _WithHistoryMenu(
+                    back: true,
+                    child: HoverButton(
+                      tooltip: l10n.tooltipBack,
+                      onPressed: b.canGoBack ? b.back : null,
+                      child: const Icon(CupertinoIcons.chevron_left),
+                    ),
                   ),
-                  HoverButton(
-                    tooltip: l10n.tooltipForward,
-                    onPressed: b.canGoForward ? b.forward : null,
-                    child: const Icon(CupertinoIcons.chevron_right),
+                  _WithHistoryMenu(
+                    back: false,
+                    child: HoverButton(
+                      tooltip: l10n.tooltipForward,
+                      onPressed: b.canGoForward ? b.forward : null,
+                      child: const Icon(CupertinoIcons.chevron_right),
+                    ),
                   ),
+                  if (scope.recents != null)
+                    HoverButton(
+                      tooltip: l10n.tooltipRecentFolders,
+                      onPressedAt: (at) => showRecentFoldersMenu(context, at),
+                      child: const Icon(CupertinoIcons.clock),
+                    ),
                   const SizedBox(width: 10),
                   Expanded(
                     // Let drags and double-clicks on the title reach the
@@ -135,6 +149,24 @@ String folderTitle(BuildContext context, String path) {
     if (place.path == path) return place.label;
   }
   return path.split('/').last;
+}
+
+/// Right-click lists the history in that direction.
+class _WithHistoryMenu extends StatelessWidget {
+  const _WithHistoryMenu({required this.back, required this.child});
+
+  final bool back;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Listener(
+    onPointerDown: (e) {
+      if (e.buttons & kSecondaryMouseButton != 0) {
+        showHistoryMenu(context, e.position, back: back);
+      }
+    },
+    child: child,
+  );
 }
 
 class _ViewModeSwitcher extends StatelessWidget {

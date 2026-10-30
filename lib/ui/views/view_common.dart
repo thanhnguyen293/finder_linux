@@ -23,10 +23,15 @@ class EntryGestures extends StatelessWidget {
     required this.entry,
     required this.child,
     this.onClick,
+    this.onSpringLoad,
   });
 
   final FileEntry entry;
   final Widget child;
+
+  /// Files dragged onto this folder and held there open it (Finder's
+  /// spring-loaded folders), so they can be dropped deeper.
+  final VoidCallback? onSpringLoad;
 
   /// Plain-click action; selects [entry] by default. Column rows of other
   /// folders navigate instead.
@@ -106,6 +111,7 @@ class EntryGestures extends StatelessWidget {
         child: entry.isDirectory
             ? FolderDropTarget(
                 dir: entry.path,
+                onLinger: onSpringLoad,
                 builder: (context, hovering) => hovering
                     ? DecoratedBox(
                         decoration: dropHighlight(context),
@@ -156,6 +162,8 @@ Widget? folderPlaceholder(BuildContext context) {
     return const SizedBox.shrink();
   } else if (b.loadFailure case final failure?) {
     text = failureMessage(l10n, failure);
+  } else if (b.searching) {
+    text = l10n.searching;
   } else if (b.query.isNotEmpty) {
     text = l10n.noResults(b.query);
   } else {
@@ -189,10 +197,8 @@ void revealRange(ScrollController scroll, double top, double extent) {
 }
 
 /// Items that were cut render dimmed until pasted.
-bool isCut(BuildContext context, FileEntry entry) {
-  final clip = FinderScope.of(context).browser.clipboard;
-  return clip != null && clip.cut && clip.paths.contains(entry.path);
-}
+bool isCut(BuildContext context, FileEntry entry) =>
+    FinderScope.of(context).actions.clipboard.isCut(entry.path);
 
 /// Section title above a group of items (Finder's "Use Groups").
 class GroupHeader extends StatelessWidget {

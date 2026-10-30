@@ -1,11 +1,13 @@
 import 'package:flutter/widgets.dart';
 
 import '../platform/window_channel.dart';
+import '../services/recent_folders.dart';
 import '../services/window_registry.dart';
 import '../state/browser_controller.dart';
 import '../state/file_actions.dart';
 import '../state/sidebar_controller.dart';
 import '../state/tabs_controller.dart';
+import 'tabs/tab_drag.dart';
 
 /// Hands the window's controllers to descendants. [browser], [actions] and
 /// [contentFocus] belong to the active tab. Widgets subscribe to the
@@ -21,6 +23,8 @@ class FinderScope extends InheritedWidget {
     required this.tabs,
     this.registry,
     this.nativeDragAndDrop = true,
+    required this.tabDrag,
+    this.recents,
     required super.child,
   });
 
@@ -41,6 +45,27 @@ class FinderScope extends InheritedWidget {
 
   /// Whether drag-and-drop widgets talk to the platform plugin.
   final bool nativeDragAndDrop;
+
+  /// A tab being dragged out of the strip (tear-off / split view).
+  final TabDragTracker tabDrag;
+
+  /// Recently opened folders shared by all windows; null in tests.
+  final RecentFolders? recents;
+
+  /// The same window scope, focused on [tab] (one side of split view).
+  FinderScope forTab(BrowserTab tab, {required Widget child}) => FinderScope(
+    browser: tab.browser,
+    actions: tab.actions,
+    sidebar: sidebar,
+    window: window,
+    contentFocus: tab.contentFocus,
+    tabs: tabs,
+    registry: registry,
+    nativeDragAndDrop: nativeDragAndDrop,
+    tabDrag: tabDrag,
+    recents: recents,
+    child: child,
+  );
 
   /// Null outside the window, e.g. in a drag overlay.
   static FinderScope? maybeOf(BuildContext context) =>

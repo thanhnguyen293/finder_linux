@@ -5,10 +5,12 @@ import 'package:finder_linux/models/grouping.dart';
 import 'package:finder_linux/models/file_entry.dart';
 import 'package:finder_linux/launch_target.dart';
 import 'package:finder_linux/models/sort_spec.dart';
+import 'package:finder_linux/services/clipboard_service.dart';
 import 'package:finder_linux/services/file_system_service.dart';
 import 'package:finder_linux/state/browser_controller.dart';
-import 'package:finder_linux/state/file_actions.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'support/fake_trash.dart';
 import 'package:path/path.dart' as p;
 
 void main() {
@@ -202,12 +204,13 @@ void main() {
     );
 
     test('dropInto moves, or copies with numbered names', () async {
-      final actions = FileActions(c);
+      final actions = actionsFor(c, fs, '/nonexistent');
       await actions.dropInto(
         [at('a.txt')],
         at('Docs'),
         copy: false,
         copySuffix: 'copy',
+        resolve: keepBoth,
       );
       expect(File(p.join(at('Docs'), 'a.txt')).existsSync(), isTrue);
       expect(File(at('a.txt')).existsSync(), isFalse);
@@ -216,26 +219,55 @@ void main() {
         at('Docs'),
         copy: true,
         copySuffix: 'copy',
+        resolve: keepBoth,
       );
       await actions.dropInto(
         [at('b.txt')],
         at('Docs'),
         copy: true,
         copySuffix: 'copy',
+        resolve: keepBoth,
       );
       expect(File(at('b.txt')).existsSync(), isTrue, reason: 'copy keeps it');
       expect(File(p.join(at('Docs'), 'b 2.txt')).existsSync(), isTrue);
     });
 
+    test('copy in one tab, paste in another (shared clipboard)', () async {
+      final clipboard = ClipboardController(MemoryFileClipboard());
+      final first = actionsFor(c, fs, '/nonexistent', clipboard: clipboard);
+      final other = BrowserController(
+        fs: fs,
+        trashDir: '/nonexistent',
+        initialPath: at('Docs'),
+      );
+      addTearDown(other.dispose);
+      await other.start();
+      final second = actionsFor(
+        other,
+        fs,
+        '/nonexistent',
+        clipboard: clipboard,
+      );
+      c.select(at('b.txt'));
+      await first.copy();
+      await second.paste(copySuffix: 'copy', resolve: keepBoth);
+      expect(File(p.join(at('Docs'), 'b.txt')).existsSync(), isTrue);
+      expect(File(at('b.txt')).existsSync(), isTrue);
+    });
+
     test('cut + paste moves items and consumes the clipboard', () async {
-      final actions = FileActions(c);
+      final actions = actionsFor(c, fs, '/nonexistent');
       c.select(at('a.txt'));
-      actions.cut();
+      await actions.cut();
       await c.navigate(at('Docs'));
-      await actions.paste(copySuffix: 'copy');
+      await actions.paste(copySuffix: 'copy', resolve: keepBoth);
       expect(File(p.join(at('Docs'), 'a.txt')).existsSync(), isTrue);
       expect(File(at('a.txt')).existsSync(), isFalse);
-      expect(c.clipboard, isNull);
+      expect(
+        actions.clipboard.written,
+        isNull,
+        reason: 'a pasted cut is spent',
+      );
       expect(c.selection, {p.join(at('Docs'), 'a.txt')});
     });
   });

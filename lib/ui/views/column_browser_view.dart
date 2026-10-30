@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
@@ -6,12 +7,15 @@ import 'package:path/path.dart' as p;
 import '../../core/result.dart';
 import '../../models/file_entry.dart';
 import '../../models/grouping.dart';
+import '../../state/browser_controller.dart';
 import '../../theme/finder_theme.dart';
+import '../dnd/drag_auto_scroll.dart';
 import '../dnd/file_drag.dart';
 import '../finder_scope.dart';
 import '../formatting.dart';
 import '../widgets/file_icon.dart';
 import '../widgets/rename_field.dart';
+import '../widgets/tag_dots.dart';
 import 'column_preview_pane.dart';
 import 'view_common.dart';
 
@@ -19,8 +23,21 @@ const _minPreviewWidth = 280.0;
 
 /// Miller columns: one column per folder from the location root down to the
 /// current folder, plus the selected folder's contents or a file preview.
-class ColumnBrowserView extends StatelessWidget {
+class ColumnBrowserView extends StatefulWidget {
   const ColumnBrowserView({super.key});
+
+  @override
+  State<ColumnBrowserView> createState() => _ColumnBrowserViewState();
+}
+
+class _ColumnBrowserViewState extends State<ColumnBrowserView> {
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   /// Folders from the column root down to [path].
   List<String> _chain(String path, String root) {
@@ -63,27 +80,33 @@ class ColumnBrowserView extends StatelessWidget {
         // visible in the first frame; scrolling to the end after layout made
         // the view jump. The minimum width keeps short chains left-aligned.
         return LayoutBuilder(
-          builder: (context, box) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          builder: (context, box) => DragAutoScroll(
+            controller: _scroll,
+            axis: Axis.horizontal,
             reverse: true,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: box.maxWidth),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ...columns,
-                  if (preview != null)
-                    ColumnPreviewPane(
-                      entry: preview,
-                      // Like Finder, the preview takes the width the columns
-                      // leave instead of sitting in a narrow fixed column.
-                      width: math.max(
-                        _minPreviewWidth,
-                        box.maxWidth -
-                            columns.length * FinderMetrics.columnWidth,
+            child: SingleChildScrollView(
+              controller: _scroll,
+              scrollDirection: Axis.horizontal,
+              reverse: true,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: box.maxWidth),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ...columns,
+                    if (preview != null)
+                      ColumnPreviewPane(
+                        entry: preview,
+                        // Like Finder, the preview takes the width the columns
+                        // leave instead of sitting in a narrow fixed column.
+                        width: math.max(
+                          _minPreviewWidth,
+                          box.maxWidth -
+                              columns.length * FinderMetrics.columnWidth,
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -91,6 +114,14 @@ class ColumnBrowserView extends StatelessWidget {
       },
     );
   }
+}
+
+/// Opens [folder] for a drag resting on it, unless it is already open
+/// along the path (that would close the columns after it, maybe the one
+/// the files are dragged from).
+Future<void> springLoad(BrowserController b, String folder) async {
+  if (folder == b.path || p.isWithin(folder, b.path)) return;
+  await b.navigate(folder);
 }
 
 /// A column; when [dropDir] is set, files dropped on its empty space or on
@@ -144,6 +175,7 @@ class _CurrentColumn extends StatelessWidget {
             rows: groupedRows(entries, groups),
             row: (e) => EntryGestures(
               entry: e,
+              onSpringLoad: () => springLoad(b, e.path),
               child: _ColumnRow(
                 entry: e,
                 highlight: b.isSelected(e.path),
@@ -157,27 +189,49 @@ class _CurrentColumn extends StatelessWidget {
 }
 
 /// Rows of one column, with group headers when the window groups items.
-class _ColumnList extends StatelessWidget {
+class _ColumnList extends StatefulWidget {
   const _ColumnList({required this.rows, required this.row});
 
   final List<ListRow> rows;
   final Widget Function(FileEntry entry) row;
 
   @override
-  Widget build(BuildContext context) => ListView.builder(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    itemExtent: context.scaled(FinderMetrics.listRowHeight),
-    itemCount: rows.length,
-    itemBuilder: (context, i) => switch (rows[i].item) {
-      final GroupKey key => GroupHeader(
-        label: groupLabel(context, key),
-        height: context.scaled(FinderMetrics.listRowHeight),
-        inset: 10,
+  State<_ColumnList> createState() => _ColumnListState();
+}
+
+class _ColumnListState extends State<_ColumnList> {
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = widget.rows;
+    return DragAutoScroll(
+      controller: _scroll,
+      axis: Axis.vertical,
+      edge: 40,
+      child: ListView.builder(
+        controller: _scroll,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemExtent: context.scaled(FinderMetrics.listRowHeight),
+        itemCount: rows.length,
+        itemBuilder: (context, i) => switch (rows[i].item) {
+          final GroupKey key => GroupHeader(
+            label: groupLabel(context, key),
+            height: context.scaled(FinderMetrics.listRowHeight),
+            inset: 10,
+          ),
+          final FileEntry e => widget.row(e),
+          _ => const SizedBox.shrink(),
+        },
       ),
-      final FileEntry e => row(e),
-      _ => const SizedBox.shrink(),
-    },
-  );
+    );
+  }
 }
 
 /// A folder other than the current one; clicking an item makes this
@@ -223,6 +277,9 @@ class _FolderColumnState extends State<_FolderColumn> {
               // Clicking in another folder's column makes that folder
               // current with the item selected.
               onClick: () => b.navigate(widget.dir, select: e.path),
+              // Opening it as the last column keeps the columns to its
+              // left, so the drop can still go anywhere along the path.
+              onSpringLoad: () => springLoad(b, e.path),
               child: _ColumnRow(
                 entry: e,
                 highlight: e.path == widget.highlighted,
@@ -282,6 +339,12 @@ class _ColumnRow extends StatelessWidget {
                             : palette.textPrimary,
                       ),
                     ),
+            ),
+            TagDots(
+              tags: entry.colorTags,
+              ring: highlight
+                  ? (focused ? palette.selection : palette.selectionInactive)
+                  : palette.content,
             ),
             if (entry.isDirectory)
               Icon(

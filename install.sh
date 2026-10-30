@@ -19,7 +19,11 @@ if [[ "${1:-}" == "--uninstall" ]]; then
   exit 0
 fi
 
-flutter build linux --release
+# The commit and Flutter used let the app update itself later
+# (Settings ▸ Advanced ▸ Updates).
+flutter build linux --release \
+  --dart-define=FINDER_COMMIT="$(git rev-parse HEAD 2>/dev/null || true)" \
+  --dart-define=FINDER_FLUTTER="$(command -v flutter)"
 rm -rf "$PREFIX"
 mkdir -p "$PREFIX" "$(dirname "$DESKTOP_FILE")" "$(dirname "$BIN_LINK")"
 cp -r build/linux/x64/release/bundle/. "$PREFIX/"
@@ -41,7 +45,7 @@ Actions=new-window;
 
 [Desktop Action new-window]
 Name=New Window
-Exec=$PREFIX/finder_linux
+Exec=$PREFIX/finder_linux --new-window
 EOF
 update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
 

@@ -24,19 +24,19 @@ class TabDescriptor {
   };
 }
 
-/// Lets the Finder windows of this user find each other. Every window is
-/// its own process, so each listens on a Unix socket in
-/// `$XDG_RUNTIME_DIR/finder-linux` (private to the user). "Merge All
+/// Lets the Finder windows of this user find each other. Every window has
+/// its own Flutter engine (and isolate), so each listens on a Unix socket
+/// in `$XDG_RUNTIME_DIR/finder-linux` (private to the user). "Merge All
 /// Windows" asks every other window for its tabs; those windows then close.
 class WindowRegistry {
   WindowRegistry({
     required String runtimeDir,
     required this.describeTabs,
     required this.surrender,
-    this.openInTab,
     String? id,
   }) : _dir = Directory(p.join(runtimeDir, 'finder-linux')),
-       _id = id ?? '$pid';
+       // Windows share the process, so the pid alone doesn't name one.
+       _id = id ?? '$pid-${DateTime.now().microsecondsSinceEpoch}';
 
   final Directory _dir;
   final String _id;
@@ -46,9 +46,6 @@ class WindowRegistry {
 
   /// Closes this window after its tabs were handed over.
   final VoidCallback surrender;
-
-  /// Opens a folder another Finder launch passed on (see [sendOpen]).
-  final void Function(String path, String? select)? openInTab;
 
   ServerSocket? _server;
 
@@ -65,17 +62,6 @@ class WindowRegistry {
   Future<void> _serve(Socket client) async {
     try {
       final request = await _readLine(client);
-      if (request case {
-        'op': 'open',
-        'path': final String path,
-      } when openInTab != null) {
-        final select = request['select'];
-        client.write('${jsonEncode({'ok': true})}\n');
-        await client.flush();
-        await client.close();
-        openInTab?.call(path, select is String ? select : null);
-        return;
-      }
       if (request is Map && request['op'] == 'surrender') {
         client.write(
           '${jsonEncode({
@@ -125,45 +111,6 @@ class WindowRegistry {
       }
     }
     return merged;
-  }
-
-  /// Asks an open Finder window to show [path] in a new tab. Returns false
-  /// when no window answered, so the caller opens its own window.
-  static Future<bool> sendOpen({
-    required String runtimeDir,
-    required String path,
-    String? select,
-  }) async {
-    final dir = Directory(p.join(runtimeDir, 'finder-linux'));
-    if (!dir.existsSync()) return false;
-    for (final entry in dir.listSync()) {
-      if (!entry.path.endsWith('.sock')) continue;
-      Socket? socket;
-      try {
-        socket = await Socket.connect(
-          _address(entry.path),
-          0,
-          timeout: const Duration(milliseconds: 500),
-        );
-        socket.write(
-          '${jsonEncode({'op': 'open', 'path': path, 'select': select})}\n',
-        );
-        await socket.flush();
-        final reply = await utf8.decoder
-            .bind(socket)
-            .transform(const LineSplitter())
-            .first
-            .timeout(const Duration(seconds: 1));
-        if (jsonDecode(reply) case {'ok': true}) return true;
-      } on SocketException {
-        _deleteQuietly(entry);
-      } on Object {
-        // Try the next window.
-      } finally {
-        socket?.destroy();
-      }
-    }
-    return false;
   }
 
   Future<void> dispose() async {

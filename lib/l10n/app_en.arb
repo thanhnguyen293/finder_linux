@@ -267,5 +267,163 @@
   "accentOrange": "Orange",
   "accentYellow": "Yellow",
   "accentGreen": "Green",
-  "accentGraphite": "Graphite"
+  "accentGraphite": "Graphite",
+  "splitDropHint": "Drop to show side by side",
+  "menuSplitView": "Show Side by Side",
+  "menuExitSplitView": "Exit Split View",
+  "settingsRestoreTabs": "Reopen tabs from last time",
+  "menuUndo": "Undo",
+  "menuRedo": "Redo",
+  "conflictTitle": "“{name}” already exists in “{folder}”",
+  "@conflictTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictBody": "Do you want to replace it? The item you replace goes to the Trash.",
+  "conflictReplace": "Replace",
+  "conflictKeepBoth": "Keep Both",
+  "conflictSkip": "Skip",
+  "conflictApplyToAll": "{count, plural, =1{Do the same for the next conflict} other{Do the same for the next {count} conflicts}}",
+  "@conflictApplyToAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferCopying": "{count, plural, =1{Copying 1 item to “{dest}”} other{Copying {count} items to “{dest}”}}",
+  "@transferCopying": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "dest": {
+        "type": "String"
+      }
+    }
+  },
+  "transferMoving": "{count, plural, =1{Moving 1 item to “{dest}”} other{Moving {count} items to “{dest}”}}",
+  "@transferMoving": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "dest": {
+        "type": "String"
+      }
+    }
+  },
+  "transferBytes": "{done} of {total}",
+  "@transferBytes": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "transferRemaining": "about {time} left",
+  "@transferRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "searchIn": "Search:",
+  "searchScopeSubfolders": "“{folder}” and subfolders",
+  "@searchScopeSubfolders": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "searchScopeThisFolder": "This folder only",
+  "searchByName": "Name",
+  "searchByContents": "Name & Contents",
+  "searching": "Searching…",
+  "columnLocation": "Location",
+  "tagRed": "Red",
+  "tagOrange": "Orange",
+  "tagYellow": "Yellow",
+  "tagGreen": "Green",
+  "tagBlue": "Blue",
+  "tagPurple": "Purple",
+  "tagGray": "Gray",
+  "sidebarTags": "Tags",
+  "taggedIn": "Tagged {tag} in “{folder}”",
+  "@taggedIn": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "tooltipRecentFolders": "Recent Folders",
+  "recentNone": "No recent folders",
+  "menuClearRecents": "Clear Menu",
+  "settingsTheme": "Theme",
+  "themeEditingFor": "Colors for the {mode} appearance. Light and dark keep their own colors.",
+  "@themeEditingFor": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "themeAccent": "Accent",
+  "themeSelection": "Selection",
+  "themeFolder": "Folders",
+  "themeWindow": "Window background",
+  "themeSidebar": "Sidebar",
+  "themeToolbar": "Toolbar",
+  "themeReset": "Use default",
+  "themeResetAll": "Reset All Colors",
+  "colorPickerTitle": "Choose a Color",
+  "colorHue": "Hue",
+  "colorSaturation": "Saturation",
+  "colorBrightness": "Brightness",
+  "settingsUpdates": "Updates",
+  "updateAutoCheck": "Check for updates automatically",
+  "updateCheckNow": "Check Now",
+  "updateChecking": "Checking for updates…",
+  "updateUpToDate": "Finder is up to date.",
+  "updateAvailable": "A new version of Finder is available.",
+  "updateInstall": "Update Now",
+  "updateInstalling": "Downloading and building the update. This can take a few minutes…",
+  "updateInstalled": "The update is installed.",
+  "updateRestart": "Restart Finder",
+  "updateFailed": "Couldn't update: {reason}",
+  "@updateFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "updateUnsupported": "This build can't update itself. Install it with install.sh to get updates.",
+  "themeEffects": "Effects",
+  "themeSidebarOpacity": "Sidebar opacity",
+  "themeWindowOpacity": "Window opacity",
+  "themeGlass": "Glass style for menus, dialogs and panels",
+  "themeBlurHint": "To blur the desktop behind Finder, install the GNOME extension “Blur my Shell” and turn it on for {appId}.",
+  "@themeBlurHint": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  }
 }
