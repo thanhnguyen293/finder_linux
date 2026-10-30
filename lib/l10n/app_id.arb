@@ -181,6 +181,7 @@
   "tagPurple": "Ungu",
   "tagGray": "Abu-abu",
   "sidebarTags": "Tag",
+  "sidebarDevices": "Perangkat",
   "taggedIn": "Ditandai {tag} di “{folder}”",
   "tooltipRecentFolders": "Folder Terbaru",
   "recentNone": "Tidak ada folder terbaru",

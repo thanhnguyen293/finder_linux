@@ -1214,6 +1214,12 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get sidebarTags;
 
+  /// Sidebar section listing Android emulators and phones reached through adb
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get sidebarDevices;
+
   /// No description provided for @taggedIn.
   ///
   /// In en, this message translates to:

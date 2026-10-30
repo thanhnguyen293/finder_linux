@@ -12,6 +12,9 @@ enum PlaceKind {
   computer,
   volume,
   trash,
+
+  /// An Android emulator or phone reached through adb.
+  device,
 }
 
 /// A sidebar destination.

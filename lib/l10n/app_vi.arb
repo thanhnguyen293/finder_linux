@@ -181,6 +181,7 @@
   "tagPurple": "Tím",
   "tagGray": "Xám",
   "sidebarTags": "Thẻ",
+  "sidebarDevices": "Thiết bị",
   "taggedIn": "Thẻ {tag} trong “{folder}”",
   "tooltipRecentFolders": "Thư mục gần đây",
   "recentNone": "Chưa có thư mục gần đây",

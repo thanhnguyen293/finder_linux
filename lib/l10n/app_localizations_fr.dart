@@ -651,6 +651,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sidebarTags => 'Tags';
 
   @override
+  String get sidebarDevices => 'Appareils';
+
+  @override
   String taggedIn(String tag, String folder) {
     return 'Tag $tag dans « $folder »';
   }

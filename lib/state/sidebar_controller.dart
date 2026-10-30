@@ -3,20 +3,26 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../models/place.dart';
+import '../services/adb_service.dart';
 import '../services/places_service.dart';
 
-/// Sidebar places. Volumes are polled because `/proc/mounts` can't be
-/// watched with inotify.
+/// Sidebar places. Volumes and adb devices are polled: `/proc/mounts`
+/// can't be watched with inotify, and adb has no change events.
 class SidebarController extends ChangeNotifier {
-  SidebarController(this._places);
+  SidebarController(this._places, {this._adb});
 
   final PlacesService _places;
+  final AdbService? _adb;
   List<Place> _favorites = const [];
   List<Place> _locations = const [];
+  List<Place> _devices = const [];
   Timer? _poll;
 
   List<Place> get favorites => _favorites;
   List<Place> get locations => _locations;
+
+  /// Running emulators and connected phones.
+  List<Place> get devices => _devices;
   String get trashDir => _places.trashFilesDir;
   String get home => _places.home;
 
@@ -37,6 +43,7 @@ class SidebarController extends ChangeNotifier {
   Future<void> reload() async {
     _favorites = await _places.favorites();
     _locations = await _places.locations();
+    _devices = await _listDevices();
     if (!_disposed) notifyListeners();
   }
 
@@ -52,10 +59,24 @@ class SidebarController extends ChangeNotifier {
 
   Future<void> _reloadLocations() async {
     final next = await _places.locations();
-    if (_disposed || listEquals(next, _locations)) return;
+    final devices = await _listDevices();
+    if (_disposed ||
+        (listEquals(next, _locations) && listEquals(devices, _devices))) {
+      return;
+    }
     _locations = next;
+    _devices = devices;
     notifyListeners();
   }
+
+  Future<List<Place>> _listDevices() async => [
+    for (final d in await _adb?.devices() ?? const <AdbDevice>[])
+      Place(
+        kind: PlaceKind.device,
+        path: deviceRootPath(d.serial),
+        label: d.name,
+      ),
+  ];
 
   bool _disposed = false;
 

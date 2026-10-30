@@ -642,6 +642,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sidebarTags => '태그';
 
   @override
+  String get sidebarDevices => '기기';
+
+  @override
   String taggedIn(String tag, String folder) {
     return '“$folder”의 $tag 태그 항목';
   }

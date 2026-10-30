@@ -181,6 +181,7 @@
   "tagPurple": "Morado",
   "tagGray": "Gris",
   "sidebarTags": "Etiquetas",
+  "sidebarDevices": "Dispositivos",
   "taggedIn": "Con la etiqueta {tag} en «{folder}»",
   "tooltipRecentFolders": "Carpetas recientes",
   "recentNone": "No hay carpetas recientes",

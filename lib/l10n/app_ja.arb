@@ -181,6 +181,7 @@
   "tagPurple": "パープル",
   "tagGray": "グレイ",
   "sidebarTags": "タグ",
+  "sidebarDevices": "デバイス",
   "taggedIn": "“{folder}”内の{tag}タグ付き項目",
   "tooltipRecentFolders": "最近使ったフォルダ",
   "recentNone": "最近使ったフォルダはありません",

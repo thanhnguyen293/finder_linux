@@ -181,6 +181,7 @@
   "tagPurple": "보라",
   "tagGray": "회색",
   "sidebarTags": "태그",
+  "sidebarDevices": "기기",
   "taggedIn": "“{folder}”의 {tag} 태그 항목",
   "tooltipRecentFolders": "최근 폴더",
   "recentNone": "최근 폴더 없음",

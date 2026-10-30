@@ -7,8 +7,10 @@ import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/file_entry.dart';
+import '../../services/adb_service.dart';
 import '../../state/drop_rules.dart';
 import '../../theme/finder_theme.dart';
+import '../commands.dart';
 import '../dialogs/conflict_dialog.dart';
 import '../finder_scope.dart';
 import '../widgets/file_icon.dart';
@@ -99,7 +101,12 @@ class _FileDraggableState extends State<FileDraggable> {
       allowedOperations: () => const [DropOperation.move, DropOperation.copy],
       dragItemProvider: (_) =>
           DragItem(localData: entry.path, suggestedName: entry.name)
-            ..add(Formats.fileUri(Uri.file(entry.path))),
+            // Other apps can't read device files, so they only get the name.
+            ..add(
+              isDevicePath(entry.path)
+                  ? Formats.plainText(entry.name)
+                  : Formats.fileUri(Uri.file(entry.path)),
+            ),
       // The picture the platform shows under the pointer.
       dragBuilder: (context, _) => _DragFeedback(entry: entry),
       child: DraggableWidget(
@@ -216,7 +223,9 @@ class _FolderDropTargetState extends State<FolderDropTarget> {
     if (paths.isEmpty || !mounted) return;
     final copy = event.acceptedOperation == DropOperation.copy;
     final scope = FinderScope.of(context);
-    if (widget.toTrash) {
+    if (widget.toTrash && paths.any(isDevicePath)) {
+      await FinderCommands(context).deleteImmediately(paths);
+    } else if (widget.toTrash) {
       await scope.actions.trashPaths(paths);
     } else if (widget.onDrop case final drop?) {
       await drop(paths, copy: copy);

@@ -78,8 +78,7 @@ class FileActions {
 
   Future<void> trashSelection() => trashPaths(_selectedPaths);
 
-  Future<void> deleteSelection() async {
-    final paths = _selectedPaths;
+  Future<void> deletePaths(List<String> paths) async {
     if (paths.isEmpty) return;
     await _finish(await _fs.deletePermanently(paths));
   }

@@ -181,6 +181,7 @@
   "tagPurple": "Fioletowy",
   "tagGray": "Szary",
   "sidebarTags": "Tagi",
+  "sidebarDevices": "Urządzenia",
   "taggedIn": "Oznaczone tagiem {tag} w „{folder}”",
   "tooltipRecentFolders": "Ostatnie foldery",
   "recentNone": "Brak ostatnich folderów",

@@ -8,6 +8,7 @@ import 'package:super_clipboard/super_clipboard.dart';
 import 'l10n/app_localizations.dart';
 import 'launch_target.dart';
 import 'models/finder_settings.dart';
+import 'services/adb_service.dart';
 import 'services/clipboard_service.dart';
 import 'services/file_system_service.dart';
 import 'services/places_service.dart';
@@ -59,7 +60,8 @@ Future<void> main(List<String> args) async {
       initialPath: folder,
       initialSelection: select,
       restoredSession: restored,
-      thumbnails: ThumbnailService(),
+      fs: const FileSystemService(adb: AdbService()),
+      thumbnails: ThumbnailService(adb: const AdbService()),
       recents: RecentFolders(),
       updates: updates,
       clipboardStore: switch (SystemClipboard.instance) {

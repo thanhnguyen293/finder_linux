@@ -643,6 +643,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get sidebarTags => 'แท็ก';
 
   @override
+  String get sidebarDevices => 'อุปกรณ์';
+
+  @override
   String taggedIn(String tag, String folder) {
     return 'แท็ก $tag ใน “$folder”';
   }

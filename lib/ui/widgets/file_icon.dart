@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 
 import '../../models/file_entry.dart';
+import '../../services/adb_service.dart';
 import '../../services/thumbnail_service.dart';
 import '../../theme/finder_theme.dart';
 import '../app_services.dart';
@@ -78,7 +79,9 @@ class FileIcon extends StatelessWidget {
             label: entry.extension,
           );
     if (!thumbnail || !SettingsScope.of(context).showThumbnails) return page;
-    if (flutterDecodableImages.contains(entry.extension)) {
+    // Device images aren't local files; the service pulls them.
+    if (flutterDecodableImages.contains(entry.extension) &&
+        !isDevicePath(entry.path)) {
       return _Thumbnail(file: entry.path, size: size, fallback: page);
     }
     final service = AppServices.thumbnailsOf(context);

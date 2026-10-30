@@ -647,6 +647,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get sidebarTags => 'Tag';
 
   @override
+  String get sidebarDevices => 'Perangkat';
+
+  @override
   String taggedIn(String tag, String folder) {
     return 'Ditandai $tag di “$folder”';
   }

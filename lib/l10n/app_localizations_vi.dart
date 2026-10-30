@@ -637,6 +637,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sidebarTags => 'Thẻ';
 
   @override
+  String get sidebarDevices => 'Thiết bị';
+
+  @override
   String taggedIn(String tag, String folder) {
     return 'Thẻ $tag trong “$folder”';
   }

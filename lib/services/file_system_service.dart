@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../core/result.dart';
 import '../models/file_entry.dart';
+import 'adb_service.dart';
 import 'xattr_tags.dart';
 
 /// All disk and desktop-integration side effects. Heavy lifting is delegated
@@ -15,9 +16,13 @@ import 'xattr_tags.dart';
 const newWindowFlag = '--new-window';
 
 class FileSystemService {
-  const FileSystemService();
+  const FileSystemService({this.adb});
+
+  /// Android devices, browsed under [adbRoot]; none when null (tests).
+  final AdbService? adb;
 
   Future<Result<List<FileEntry>>> list(String dir) async {
+    if (isDevicePath(dir)) return _onDevice(dir, (a) => a.list(dir));
     try {
       final entities = await Directory(dir).list(followLinks: false).toList();
       final entries = await Future.wait(entities.map(_entryFor));
@@ -43,7 +48,8 @@ class FileSystemService {
   }
 
   Future<FileEntry?> entry(String path) async {
-    if (!_exists(path)) return null;
+    if (isDevicePath(path)) return adb?.entry(path);
+    if (!exists(path)) return null;
     return _entryFor(
       FileSystemEntity.isLinkSync(path) ? Link(path) : File(path),
     );
@@ -51,10 +57,13 @@ class FileSystemService {
 
   /// Replaces [path]'s tags (see `xattr_tags.dart`).
   Future<Result<void>> setTags(String path, List<String> tags) async =>
-      writeTags(path, tags);
+      isDevicePath(path)
+      ? Err(Failure(FailureKind.other, path))
+      : writeTags(path, tags);
 
   Future<Result<String>> createFolder(String parent, String baseName) async {
     final target = uniqueChildPath(parent, baseName);
+    if (isDevicePath(target)) return _onDevice(target, (a) => a.mkdir(target));
     try {
       await Directory(target).create();
       return Ok(target);
@@ -71,8 +80,11 @@ class FileSystemService {
     final target = p.join(p.dirname(path), name);
     if (target == path) return Ok(path);
     // Allow case-only renames, which the existence check would otherwise block.
-    if (_exists(target) && target.toLowerCase() != path.toLowerCase()) {
+    if (exists(target) && target.toLowerCase() != path.toLowerCase()) {
       return Err(Failure(FailureKind.nameTaken, name));
+    }
+    if (isDevicePath(path)) {
+      return _onDevice(path, (a) => a.rename(path, target));
     }
     return _run('mv', ['-T', '--', path, target], value: target);
   }
@@ -120,11 +132,15 @@ class FileSystemService {
     return Ok(moved);
   }
 
-  Future<Result<void>> trash(List<String> paths) =>
-      _run('gio', ['trash', '--', ...paths], value: null);
+  /// Devices have no Trash, so their items are deleted for good.
+  Future<Result<void>> trash(List<String> paths) => paths.any(isDevicePath)
+      ? deletePermanently(paths)
+      : _run('gio', ['trash', '--', ...paths], value: null);
 
   Future<Result<void>> deletePermanently(List<String> paths) =>
-      _run('rm', ['-rf', '--', ...paths], value: null);
+      paths.any(isDevicePath)
+      ? _onDevice(paths.first, (a) => a.delete(paths))
+      : _run('rm', ['-rf', '--', ...paths], value: null);
 
   Future<Result<void>> emptyTrash() =>
       _run('gio', ['trash', '--empty'], value: null);
@@ -161,14 +177,20 @@ class FileSystemService {
 
   /// Moves [from] to exactly [to] (undo / redo); refuses to overwrite.
   Future<Result<void>> moveExact(String from, String to) async {
-    if (_exists(to)) return Err(Failure(FailureKind.nameTaken, p.basename(to)));
+    if (exists(to)) return Err(Failure(FailureKind.nameTaken, p.basename(to)));
+    if (isDevicePath(from) || isDevicePath(to)) {
+      return _onDevice(to, (a) => a.move(from, to));
+    }
     return _run('mv', ['-T', '--', from, to], value: null);
   }
 
   /// Copies [source] to exactly [dest] (redo of a copy).
   Future<Result<void>> copyExact(String source, String dest) async {
-    if (_exists(dest)) {
+    if (exists(dest)) {
       return Err(Failure(FailureKind.nameTaken, p.basename(dest)));
+    }
+    if (isDevicePath(source) || isDevicePath(dest)) {
+      return _onDevice(dest, (a) => a.copy(source, dest));
     }
     return _run('cp', ['-a', '-T', '--', source, dest], value: null);
   }
@@ -214,10 +236,21 @@ class FileSystemService {
     return best;
   }
 
-  Future<Result<void>> open(String path) =>
-      _run('gio', ['open', path], value: null);
+  Future<Result<void>> open(String path) => isDevicePath(path)
+      ? _onDevice(path, (a) => a.open(path))
+      : _run('gio', ['open', path], value: null);
+
+  /// [path] itself, or for a device file a local copy; null if unreadable.
+  Future<String?> localCopy(String path) async {
+    if (!isDevicePath(path)) return path;
+    return switch (await adb?.pullToTemp(path)) {
+      Ok(:final value) => value,
+      _ => null,
+    };
+  }
 
   Future<void> openTerminal(String dir) async {
+    if (isDevicePath(dir)) return;
     await Process.start(
       'x-terminal-emulator',
       const [],
@@ -233,6 +266,7 @@ class FileSystemService {
   }
 
   Future<int?> freeSpace(String path) async {
+    if (isDevicePath(path)) return adb?.freeSpace(path);
     final r = await Process.run('df', ['-B1', '--output=avail', path]);
     if (r.exitCode != 0) return null;
     final lines = (r.stdout as String).trim().split('\n');
@@ -240,14 +274,20 @@ class FileSystemService {
   }
 
   Future<int?> directorySize(String path) async {
+    if (isDevicePath(path)) return adb?.directorySize(path);
     final r = await Process.run('du', ['-sb', '--', path]);
     // du exits non-zero on unreadable children but still prints a total.
     return int.tryParse((r.stdout as String).split(RegExp(r'\s')).first);
   }
 
-  Stream<FileSystemEvent> watch(String dir) => Directory(dir).watch();
+  /// Device folders aren't watched; they refresh on Reload and after
+  /// this app changes them.
+  Stream<FileSystemEvent> watch(String dir) =>
+      isDevicePath(dir) ? const Stream.empty() : Directory(dir).watch();
 
-  bool isDirectory(String path) => FileSystemEntity.isDirectorySync(path);
+  bool isDirectory(String path) => isDevicePath(path)
+      ? adb?.isDirectory(path) ?? false
+      : FileSystemEntity.isDirectorySync(path);
 
   /// First free name in [dir] following Finder's numbering:
   /// `name`, `name 2`, … or with a suffix `name copy`, `name copy 2`, …
@@ -256,7 +296,7 @@ class FileSystemService {
     final stem = name.substring(0, name.length - ext.length);
     final base = suffix == null ? stem : '$stem $suffix';
     var candidate = p.join(dir, '$base$ext');
-    for (var n = 2; _exists(candidate); n++) {
+    for (var n = 2; exists(candidate); n++) {
       candidate = p.join(dir, '$base $n$ext');
     }
     return candidate;
@@ -268,9 +308,18 @@ class FileSystemService {
     return p.extension(name);
   }
 
-  bool _exists(String path) =>
-      FileSystemEntity.typeSync(path, followLinks: false) !=
-      FileSystemEntityType.notFound;
+  bool exists(String path) => isDevicePath(path)
+      ? adb?.exists(path) ?? false
+      : FileSystemEntity.typeSync(path, followLinks: false) !=
+            FileSystemEntityType.notFound;
+
+  Future<Result<T>> _onDevice<T>(
+    String path,
+    Future<Result<T>> Function(AdbService adb) run,
+  ) => switch (adb) {
+    final adb? => run(adb),
+    null => Future.value(Err(Failure(FailureKind.notFound, path))),
+  };
 
   bool _isSelfOrAncestor(String src, String dest) =>
       dest == src || p.isWithin(src, dest);

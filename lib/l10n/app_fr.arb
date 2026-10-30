@@ -181,6 +181,7 @@
   "tagPurple": "Violet",
   "tagGray": "Gris",
   "sidebarTags": "Tags",
+  "sidebarDevices": "Appareils",
   "taggedIn": "Tag {tag} dans « {folder} »",
   "tooltipRecentFolders": "Dossiers récents",
   "recentNone": "Aucun dossier récent",

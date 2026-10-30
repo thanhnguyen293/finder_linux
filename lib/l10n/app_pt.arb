@@ -181,6 +181,7 @@
   "tagPurple": "Roxo",
   "tagGray": "Cinza",
   "sidebarTags": "Etiquetas",
+  "sidebarDevices": "Dispositivos",
   "taggedIn": "Com a etiqueta {tag} em “{folder}”",
   "tooltipRecentFolders": "Pastas Recentes",
   "recentNone": "Nenhuma pasta recente",

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import '../core/result.dart';
+import 'adb_service.dart';
 import 'file_system_service.dart';
 import 'xattr_tags.dart';
 
@@ -87,7 +88,8 @@ class TransferService {
       }
     }
     bool clashes(String src) =>
-        p.dirname(src) != destDir && _exists(p.join(destDir, p.basename(src)));
+        p.dirname(src) != destDir &&
+        _fs.exists(p.join(destDir, p.basename(src)));
     final conflicts = sources.where(clashes).length;
     var asked = 0;
     ConflictAnswer? sticky;
@@ -104,7 +106,7 @@ class TransferService {
         continue;
       }
       final dest = p.join(destDir, name);
-      if (!_exists(dest)) {
+      if (!_fs.exists(dest)) {
         items.add((source: src, dest: dest, replace: false));
         continue;
       }
@@ -159,7 +161,21 @@ class TransferService {
           }
           replaced.add(item.dest);
         }
-        if (plan.move) {
+        if (isDevicePath(item.source) || isDevicePath(item.dest)) {
+          // adb reports no progress; count the item's bytes once it's done.
+          final size = await _sizeOf(item.source);
+          final r = plan.move
+              ? await _fs.moveExact(item.source, item.dest)
+              : await _fs.copyExact(item.source, item.dest);
+          if (r case Err(:final failure)) {
+            return TransferOutcome(
+              done: done,
+              replaced: replaced,
+              failure: failure,
+            );
+          }
+          if (!plan.move) run.doneBytes += size;
+        } else if (plan.move) {
           await _move(item.source, item.dest, run);
         } else {
           await _copyTree(item.source, item.dest, run);
@@ -185,6 +201,11 @@ class TransferService {
       }
     }
     run.report(force: true);
+    final onDevices = [
+      for (final (_, dest) in done)
+        if (isDevicePath(dest)) dest,
+    ];
+    if (onDevices.isNotEmpty) await _fs.adb?.scanMedia(onDevices);
     return TransferOutcome(done: done, replaced: replaced);
   }
 

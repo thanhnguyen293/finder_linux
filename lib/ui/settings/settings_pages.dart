@@ -23,6 +23,7 @@ const _sidebarKinds = [
   PlaceKind.bookmark,
   PlaceKind.computer,
   PlaceKind.volume,
+  PlaceKind.device,
   PlaceKind.trash,
 ];
 

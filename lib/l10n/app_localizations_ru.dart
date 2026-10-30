@@ -653,6 +653,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sidebarTags => 'Теги';
 
   @override
+  String get sidebarDevices => 'Устройства';
+
+  @override
   String taggedIn(String tag, String folder) {
     return 'Тег «$tag» в «$folder»';
   }

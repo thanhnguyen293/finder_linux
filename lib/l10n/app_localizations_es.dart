@@ -649,6 +649,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sidebarTags => 'Etiquetas';
 
   @override
+  String get sidebarDevices => 'Dispositivos';
+
+  @override
   String taggedIn(String tag, String folder) {
     return 'Con la etiqueta $tag en «$folder»';
   }

@@ -88,7 +88,7 @@ class _FinderWindowState extends State<FinderWindow> {
     transfers: _transfers,
     clipboard: ClipboardController(widget.clipboardStore),
   );
-  late final _sidebar = SidebarController(widget.places);
+  late final _sidebar = SidebarController(widget.places, adb: widget.fs.adb);
   final _window = WindowChannel();
   WindowRegistry? _registry;
   double _sidebarWidth = FinderMetrics.sidebarDefaultWidth;

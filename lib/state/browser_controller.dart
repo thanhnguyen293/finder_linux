@@ -9,6 +9,7 @@ import '../models/file_entry.dart';
 import '../models/grouping.dart';
 import '../models/sort_spec.dart';
 import '../models/tag_color.dart';
+import '../services/adb_service.dart';
 import '../services/file_system_service.dart';
 import '../services/search_service.dart';
 import 'selection_mixin.dart';
@@ -113,7 +114,7 @@ class BrowserController extends ChangeNotifier with SelectionMixin {
     await navigate(from.removeLast(), record: false);
   }
 
-  bool get canGoUp => _path != '/';
+  bool get canGoUp => _path != '/' && !isDeviceRoot(_path);
   bool get isTrash => _path == trashDir;
   bool get loading => _loading;
   Failure? get loadFailure => _loadFailure;

@@ -5,7 +5,9 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 
+import '../core/result.dart';
 import '../models/file_entry.dart';
+import 'adb_service.dart';
 
 /// Pixel size of generated thumbnails (the freedesktop "large" size), so
 /// the biggest icons stay sharp on HiDPI screens.
@@ -97,15 +99,24 @@ List<String> expandExec(List<String> exec, String input, String output) => [
         .replaceAll('%%', '%'),
 ];
 
+// Device files are pulled over adb to make a preview; an emulator's adb
+// copies hundreds of MB/s, but past these sizes it isn't worth it.
+const _maxDeviceImageBytes = 30 * 1024 * 1024;
+const _maxDeviceVideoBytes = 200 * 1024 * 1024;
+
 /// Preview pictures for PDFs, videos, office documents, fonts and images
 /// Flutter can't decode, made by the desktop's own tools and cached in
 /// `$XDG_CACHE_HOME/finder-linux/thumbnails` (keyed by path, size and
-/// modification time, so edited files get a fresh one).
+/// modification time, so edited files get a fresh one). Files on adb
+/// devices, images included, are previewed from a pulled copy.
 class ThumbnailService {
-  ThumbnailService({Map<String, String>? environment})
+  ThumbnailService({Map<String, String>? environment, this.adb})
     : _env = environment ?? Platform.environment;
 
   final Map<String, String> _env;
+
+  /// Pulls device files; without it they get no preview.
+  final AdbService? adb;
 
   static const _maxJobs = 3;
   static const _timeout = Duration(seconds: 20);
@@ -125,6 +136,14 @@ class ThumbnailService {
   bool handles(FileEntry e) {
     if (e.isDirectory) return false;
     final ext = e.extension;
+    if (isDevicePath(e.path)) {
+      if (adb == null) return false;
+      if (_videoExtensions.contains(ext)) {
+        return e.size <= _maxDeviceVideoBytes;
+      }
+      if (e.size > _maxDeviceImageBytes) return false;
+      if (flutterDecodableImages.contains(ext)) return true;
+    }
     return _videoExtensions.contains(ext) ||
         officePreviewMembers.containsKey(ext) ||
         thumbnailMimeTypes.containsKey(ext);
@@ -167,7 +186,10 @@ class ThumbnailService {
     );
     final part = '$out.$pid.part';
     try {
-      if (await _generate(e, work) && await _nonEmpty(work)) {
+      final made = isDevicePath(e.path)
+          ? await _fromDevice(e, key, work)
+          : await _generate(e, work);
+      if (made && await _nonEmpty(work)) {
         await Directory(cacheDir).create(recursive: true);
         // /tmp is often another filesystem: copy, then rename into place
         // so readers never see half a file.
@@ -192,6 +214,69 @@ class ThumbnailService {
         }
       }
       _release();
+    }
+  }
+
+  /// Pulls a device file next to [work] and previews the local copy.
+  Future<bool> _fromDevice(FileEntry e, String key, String work) async {
+    final device = adb;
+    if (device == null) return false;
+    // Named like [work] for the same AppArmor reason, with the original
+    // extension so thumbnailers recognize the format.
+    final input = p.join(
+      Directory.systemTemp.path,
+      'gnome-desktop-thumbnailer-$pid-$key-src.${e.extension}',
+    );
+    try {
+      if (await device.copy(e.path, input) is Err) return false;
+      if (flutterDecodableImages.contains(e.extension)) {
+        // A scaled copy keeps the cache small; Flutter can show the
+        // original if ffmpeg is missing or can't read it.
+        if (await _scaledImage(input, work)) return true;
+        await File(input).copy(work);
+        return true;
+      }
+      return await _generate(
+        FileEntry(
+          path: input,
+          isDirectory: false,
+          size: e.size,
+          modified: e.modified,
+          mode: e.mode,
+        ),
+        work,
+      );
+    } finally {
+      try {
+        await File(input).delete();
+      } on FileSystemException {
+        // The pull failed before writing it.
+      }
+    }
+  }
+
+  Future<bool> _scaledImage(String input, String work) async {
+    try {
+      return await _exec('ffmpeg', [
+                '-v',
+                'error',
+                '-y',
+                '-i',
+                input,
+                '-frames:v',
+                '1',
+                '-vf',
+                "scale='min($thumbnailSize,iw)':-2",
+                '-f',
+                'image2',
+                '-c:v',
+                'png',
+                work,
+              ]) ==
+              0 &&
+          await _nonEmpty(work);
+    } on ProcessException {
+      return false;
     }
   }
 

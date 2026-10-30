@@ -181,6 +181,7 @@
   "tagPurple": "Mor",
   "tagGray": "Gri",
   "sidebarTags": "Etiketler",
+  "sidebarDevices": "Aygıtlar",
   "taggedIn": "“{folder}” içinde {tag} etiketli",
   "tooltipRecentFolders": "Son Klasörler",
   "recentNone": "Son klasör yok",

@@ -360,6 +360,10 @@
   "tagPurple": "Purple",
   "tagGray": "Gray",
   "sidebarTags": "Tags",
+  "sidebarDevices": "Devices",
+  "@sidebarDevices": {
+    "description": "Sidebar section listing Android emulators and phones reached through adb"
+  },
   "taggedIn": "Tagged {tag} in “{folder}”",
   "@taggedIn": {
     "placeholders": {

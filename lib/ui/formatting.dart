@@ -105,6 +105,7 @@ String placeName(AppLocalizations l10n, PlaceKind kind) => switch (kind) {
   PlaceKind.computer => l10n.placeComputer,
   PlaceKind.volume => l10n.settingsExternalDrives,
   PlaceKind.trash => l10n.placeTrash,
+  PlaceKind.device => l10n.sidebarDevices,
 };
 
 /// Name as shown in views: hides the extension when the user turned off

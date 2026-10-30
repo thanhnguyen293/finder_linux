@@ -145,7 +145,7 @@ String folderTitle(BuildContext context, String path) {
   final l10n = AppLocalizations.of(context);
   if (path == '/') return l10n.placeComputer;
   if (path == scope.sidebar.trashDir) return l10n.placeTrash;
-  for (final place in scope.sidebar.favorites) {
+  for (final place in [...scope.sidebar.favorites, ...scope.sidebar.devices]) {
     if (place.path == path) return place.label;
   }
   return path.split('/').last;

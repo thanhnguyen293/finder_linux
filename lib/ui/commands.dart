@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../core/result.dart';
 import '../models/sort_spec.dart';
+import '../services/adb_service.dart';
 import '../services/window_registry.dart';
 import '../state/browser_controller.dart';
 import '../l10n/app_localizations.dart';
@@ -44,18 +45,26 @@ class FinderCommands {
   /// copy of this one).
   Future<void> newWindow() => _s.window.openWindow();
 
-  /// Delete key: Trash normally, permanent delete (confirmed) inside Trash.
+  /// Delete key: Trash normally, permanent delete (confirmed) inside the
+  /// Trash and on devices, which have none.
   Future<void> delete() async {
-    final count = _s.browser.selection.length;
-    if (count == 0) return;
-    if (!_s.browser.isTrash) return _s.actions.trashSelection();
+    final b = _s.browser;
+    if (b.selection.isEmpty) return;
+    if (!b.isTrash && !isDevicePath(b.path)) {
+      return _s.actions.trashSelection();
+    }
+    await deleteImmediately([for (final e in b.selectedEntries) e.path]);
+  }
+
+  Future<void> deleteImmediately(List<String> paths) async {
+    if (paths.isEmpty) return;
     final ok = await confirmDestructive(
       context,
-      title: _l10n.deleteConfirmTitle(count),
+      title: _l10n.deleteConfirmTitle(paths.length),
       body: _l10n.deleteConfirmBody,
       action: _l10n.buttonDelete,
     );
-    if (ok) await _s.actions.deleteSelection();
+    if (ok) await _s.actions.deletePaths(paths);
   }
 
   Future<void> emptyTrash() async {
@@ -119,7 +128,12 @@ class FinderCommands {
     final entry =
         _s.browser.cursorEntry ?? _s.browser.selectedEntries.firstOrNull;
     if (entry == null) return;
-    await showQuickLook(context, entry, onOpen: () => _s.actions.open(entry));
+    await showQuickLook(
+      context,
+      entry,
+      onOpen: () => _s.actions.open(entry),
+      localCopy: _s.browser.fs.localCopy,
+    );
     _s.contentFocus.requestFocus();
   }
 

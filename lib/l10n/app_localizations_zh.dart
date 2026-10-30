@@ -641,6 +641,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sidebarTags => '标签';
 
   @override
+  String get sidebarDevices => '设备';
+
+  @override
   String taggedIn(String tag, String folder) {
     return '“$folder”中标记为$tag的项目';
   }

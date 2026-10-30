@@ -13,10 +13,12 @@ import '../widgets/file_icon.dart';
 const _maxTextPreviewBytes = 256 * 1024;
 
 /// Space-bar preview: images, text/code, or a large icon with details.
+/// [localCopy] gives a readable file for [entry] (device files are pulled).
 Future<void> showQuickLook(
   BuildContext context,
   FileEntry entry, {
   required VoidCallback onOpen,
+  required Future<String?> Function(String path) localCopy,
 }) {
   return showDialog<void>(
     context: context,
@@ -28,17 +30,22 @@ Future<void> showQuickLook(
       },
       child: Focus(
         autofocus: true,
-        child: _QuickLook(entry: entry, onOpen: onOpen),
+        child: _QuickLook(entry: entry, onOpen: onOpen, localCopy: localCopy),
       ),
     ),
   );
 }
 
 class _QuickLook extends StatelessWidget {
-  const _QuickLook({required this.entry, required this.onOpen});
+  const _QuickLook({
+    required this.entry,
+    required this.onOpen,
+    required this.localCopy,
+  });
 
   final FileEntry entry;
   final VoidCallback onOpen;
+  final Future<String?> Function(String path) localCopy;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +88,9 @@ class _QuickLook extends StatelessWidget {
                 ],
               ),
             ),
-            Flexible(child: _Preview(entry: entry)),
+            Flexible(
+              child: _Preview(entry: entry, localCopy: localCopy),
+            ),
           ],
         ),
       ),
@@ -89,27 +98,57 @@ class _QuickLook extends StatelessWidget {
   }
 }
 
-class _Preview extends StatelessWidget {
-  const _Preview({required this.entry});
+class _Preview extends StatefulWidget {
+  const _Preview({required this.entry, required this.localCopy});
 
   final FileEntry entry;
+  final Future<String?> Function(String path) localCopy;
 
   @override
-  Widget build(BuildContext context) {
-    if (entry.kind == FileKind.image && entry.extension != 'svg') {
+  State<_Preview> createState() => _PreviewState();
+}
+
+class _PreviewState extends State<_Preview> {
+  FileEntry get entry => widget.entry;
+
+  bool get _isImage => entry.kind == FileKind.image && entry.extension != 'svg';
+
+  bool get _isText =>
+      (entry.kind == FileKind.text || entry.kind == FileKind.code) &&
+      entry.size <= _maxTextPreviewBytes;
+
+  // Only what will be shown is fetched (pulling a device video would be
+  // wasted on the details view).
+  late final Future<String?> _file = _isImage || _isText
+      ? widget.localCopy(entry.path)
+      : Future.value();
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<String?>(
+    future: _file,
+    builder: (context, snap) => switch (snap.data) {
+      final file? => _content(file),
+      null when snap.connectionState == ConnectionState.done => _Details(
+        entry: entry,
+      ),
+      null => const SizedBox(height: 200),
+    },
+  );
+
+  Widget _content(String file) {
+    if (_isImage) {
       return InteractiveViewer(
         child: Image.file(
-          File(entry.path),
+          File(file),
           fit: BoxFit.contain,
           errorBuilder: (_, _, _) => _Details(entry: entry),
         ),
       );
     }
-    final textual = entry.kind == FileKind.text || entry.kind == FileKind.code;
-    if (textual && entry.size <= _maxTextPreviewBytes) {
+    if (_isText) {
       return FutureBuilder<String>(
         future: File(
-          entry.path,
+          file,
         ).readAsBytes().then((b) => utf8.decode(b, allowMalformed: true)),
         builder: (context, snap) => snap.hasData
             ? SingleChildScrollView(

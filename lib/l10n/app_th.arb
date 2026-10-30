@@ -181,6 +181,7 @@
   "tagPurple": "ม่วง",
   "tagGray": "เทา",
   "sidebarTags": "แท็ก",
+  "sidebarDevices": "อุปกรณ์",
   "taggedIn": "แท็ก {tag} ใน “{folder}”",
   "tooltipRecentFolders": "โฟลเดอร์ล่าสุด",
   "recentNone": "ไม่มีโฟลเดอร์ล่าสุด",

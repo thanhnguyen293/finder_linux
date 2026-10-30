@@ -185,7 +185,8 @@ Future<void> showPlaceMenu(BuildContext context, Offset at, Place place) {
     _Action(l10n.menuOpenInNewTab, () => cmd.newTab(place.path)),
     if (place.kind != PlaceKind.trash) ...[
       _Action(l10n.menuNewWindow, () => scope.window.openWindow(place.path)),
-      _Action(l10n.menuOpenInTerminal, () => cmd.openInTerminal(place.path)),
+      if (place.kind != PlaceKind.device)
+        _Action(l10n.menuOpenInTerminal, () => cmd.openInTerminal(place.path)),
     ],
     if (place.kind == PlaceKind.trash) ...[
       null,

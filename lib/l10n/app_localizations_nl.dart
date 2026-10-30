@@ -650,6 +650,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sidebarTags => 'Labels';
 
   @override
+  String get sidebarDevices => 'Apparaten';
+
+  @override
   String taggedIn(String tag, String folder) {
     return 'Label $tag in ‘$folder’';
   }

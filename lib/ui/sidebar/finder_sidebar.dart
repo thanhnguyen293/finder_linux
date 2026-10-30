@@ -16,7 +16,6 @@ import '../widgets/tag_dots.dart';
 import '../widgets/tag_picker.dart';
 
 /// Sidebar glyph for each kind of place (also used in Settings).
-/// Sidebar glyph for each kind of place (also used in Settings).
 const placeIcons = <PlaceKind, IconData>{
   PlaceKind.home: CupertinoIcons.house,
   PlaceKind.desktop: CupertinoIcons.macwindow,
@@ -29,6 +28,7 @@ const placeIcons = <PlaceKind, IconData>{
   PlaceKind.computer: CupertinoIcons.desktopcomputer,
   PlaceKind.volume: CupertinoIcons.device_laptop,
   PlaceKind.trash: CupertinoIcons.trash,
+  PlaceKind.device: CupertinoIcons.device_phone_portrait,
 };
 
 class FinderSidebar extends StatelessWidget {
@@ -52,6 +52,7 @@ class FinderSidebar extends StatelessWidget {
                 bool shown(Place p) => !hidden.contains(p.kind);
                 final favorites = scope.sidebar.favorites.where(shown);
                 final locations = scope.sidebar.locations.where(shown);
+                final devices = scope.sidebar.devices.where(shown);
                 return ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   children: [
@@ -63,6 +64,11 @@ class FinderSidebar extends StatelessWidget {
                     if (locations.isNotEmpty) ...[
                       _SectionHeader(l10n.sectionLocations),
                       for (final place in locations) _PlaceRow(place: place),
+                      const SizedBox(height: 14),
+                    ],
+                    if (devices.isNotEmpty) ...[
+                      _SectionHeader(l10n.sidebarDevices),
+                      for (final place in devices) _PlaceRow(place: place),
                       const SizedBox(height: 14),
                     ],
                     _SectionHeader(l10n.sidebarTags),

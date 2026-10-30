@@ -181,6 +181,7 @@
   "tagPurple": "Violett",
   "tagGray": "Grau",
   "sidebarTags": "Tags",
+  "sidebarDevices": "Geräte",
   "taggedIn": "Mit Tag {tag} in „{folder}“",
   "tooltipRecentFolders": "Benutzte Ordner",
   "recentNone": "Keine benutzten Ordner",

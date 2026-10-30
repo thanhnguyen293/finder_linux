@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../../core/locations.dart';
 import '../../core/result.dart';
 import '../../models/file_entry.dart';
+import '../../services/adb_service.dart';
 import '../../theme/finder_theme.dart';
 import '../commands.dart';
 import '../dnd/file_drag.dart';
@@ -38,8 +39,11 @@ class PathBar extends StatelessWidget {
           if (scope.browser.editingLocation) return const _LocationField();
           final path = scope.browser.path;
           final parts = p.split(path);
+          // A device's path starts at its storage, not at the virtual root.
+          final first = isDevicePath(path) ? p.split(adbRoot).length + 1 : 1;
           final crumbs = [
-            for (var i = 1; i <= parts.length; i++) p.joinAll(parts.take(i)),
+            for (var i = first; i <= parts.length; i++)
+              p.joinAll(parts.take(i)),
           ];
           final selected = scope.browser.selectedEntries;
           // Reversed so long paths show their end; the minimum width keeps

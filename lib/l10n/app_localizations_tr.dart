@@ -646,6 +646,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sidebarTags => 'Etiketler';
 
   @override
+  String get sidebarDevices => 'Aygıtlar';
+
+  @override
   String taggedIn(String tag, String folder) {
     return '“$folder” içinde $tag etiketli';
   }

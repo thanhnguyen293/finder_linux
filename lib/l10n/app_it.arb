@@ -181,6 +181,7 @@
   "tagPurple": "Viola",
   "tagGray": "Grigio",
   "sidebarTags": "Tag",
+  "sidebarDevices": "Dispositivi",
   "taggedIn": "Con tag {tag} in “{folder}”",
   "tooltipRecentFolders": "Cartelle recenti",
   "recentNone": "Nessuna cartella recente",

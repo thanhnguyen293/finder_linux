@@ -181,6 +181,7 @@
   "tagPurple": "Paars",
   "tagGray": "Grijs",
   "sidebarTags": "Labels",
+  "sidebarDevices": "Apparaten",
   "taggedIn": "Label {tag} in ‘{folder}’",
   "tooltipRecentFolders": "Recente mappen",
   "recentNone": "Geen recente mappen",

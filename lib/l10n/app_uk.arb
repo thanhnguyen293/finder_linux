@@ -181,6 +181,7 @@
   "tagPurple": "Фіолетовий",
   "tagGray": "Сірий",
   "sidebarTags": "Теги",
+  "sidebarDevices": "Пристрої",
   "taggedIn": "Позначено тегом {tag} у «{folder}»",
   "tooltipRecentFolders": "Останні папки",
   "recentNone": "Немає останніх папок",
