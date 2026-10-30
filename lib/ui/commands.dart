@@ -3,14 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/result.dart';
+import '../models/place.dart';
 import '../models/sort_spec.dart';
 import '../services/adb_service.dart';
+import '../services/editor_apps.dart';
 import '../services/window_registry.dart';
 import '../state/browser_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../models/finder_settings.dart';
 import '../models/tag_color.dart';
 import '../models/file_entry.dart';
+import 'app_services.dart';
 import 'dialogs/conflict_dialog.dart';
 import 'dialogs/quick_look.dart';
 import 'dialogs/simple_dialogs.dart';
@@ -34,6 +37,20 @@ class FinderCommands {
     copySuffix: _l10n.copySuffix,
     resolve: conflictResolver(context),
   );
+  Future<void> sendToDevice(Place device) => _s.actions.sendSelectionToDevice(
+    device.path,
+    device.label,
+    copySuffix: _l10n.copySuffix,
+    resolve: conflictResolver(context),
+  );
+  Future<void> openInEditor(EditorApp app, String dir) async {
+    final editors = AppServices.editorsOf(context);
+    if (editors == null) return;
+    if (await editors.open(app, dir) case Err(:final failure)) {
+      _s.browser.emit(FailureNotice(failure));
+    }
+  }
+
   Future<void> undo() => _s.actions.undo();
   Future<void> redo() => _s.actions.redo();
   Future<void> duplicate() =>

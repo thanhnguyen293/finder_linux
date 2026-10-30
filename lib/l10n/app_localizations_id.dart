@@ -185,6 +185,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get menuOpenInTerminal => 'Buka di Terminal';
 
   @override
+  String menuOpenInApp(String app) {
+    return 'Buka di $app';
+  }
+
+  @override
   String get menuAddToSidebar => 'Tambahkan ke Bar Samping';
 
   @override
@@ -648,6 +653,21 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sidebarDevices => 'Perangkat';
+
+  @override
+  String menuSendTo(String device) {
+    return 'Kirim ke $device';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count item dikirim ke $device',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

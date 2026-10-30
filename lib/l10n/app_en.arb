@@ -104,6 +104,15 @@
   "menuGetInfo": "Get Info",
   "menuCopyPath": "Copy Path",
   "menuOpenInTerminal": "Open in Terminal",
+  "menuOpenInApp": "Open in {app}",
+  "@menuOpenInApp": {
+    "description": "Opens a git folder in a code editor or IDE such as Visual Studio Code",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "menuAddToSidebar": "Add to Sidebar",
   "menuRemoveFromSidebar": "Remove from Sidebar",
   "menuShowHidden": "Show Hidden Files",
@@ -361,6 +370,26 @@
   "tagGray": "Gray",
   "sidebarTags": "Tags",
   "sidebarDevices": "Devices",
+  "menuSendTo": "Send to {device}",
+  "@menuSendTo": {
+    "description": "Context menu item copying the selection to an Android emulator or phone",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "sentToDevice": "{count, plural, =1{Sent 1 item to {device}} other{Sent {count} items to {device}}}",
+  "@sentToDevice": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "@sidebarDevices": {
     "description": "Sidebar section listing Android emulators and phones reached through adb"
   },

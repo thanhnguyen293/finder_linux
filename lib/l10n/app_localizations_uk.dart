@@ -187,6 +187,11 @@ class AppLocalizationsUk extends AppLocalizations {
   String get menuOpenInTerminal => 'Відкрити в Терміналі';
 
   @override
+  String menuOpenInApp(String app) {
+    return 'Відкрити в $app';
+  }
+
+  @override
   String get menuAddToSidebar => 'Додати до бічної панелі';
 
   @override
@@ -655,6 +660,22 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get sidebarDevices => 'Пристрої';
+
+  @override
+  String menuSendTo(String device) {
+    return 'Надіслати на $device';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Надіслано об’єктів: $count на $device',
+      one: 'Надіслано 1 об’єкт на $device',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

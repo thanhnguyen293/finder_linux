@@ -6,8 +6,11 @@ import 'package:finder_linux/models/file_entry.dart';
 import 'package:finder_linux/services/file_system_service.dart';
 import 'package:finder_linux/services/thumbnail_service.dart';
 import 'package:finder_linux/services/transfer_service.dart';
+import 'package:finder_linux/state/browser_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+
+import 'support/fake_trash.dart';
 
 void main() {
   test('device paths map to the device storage', () {
@@ -51,6 +54,22 @@ void main() {
       entries.first.modified,
       DateTime.fromMillisecondsSinceEpoch(1792467819000),
     );
+  });
+
+  test('sent items go to the folders media apps index', () {
+    FileEntry e(String name, {bool dir = false}) => FileEntry(
+      path: '/h/$name',
+      isDirectory: dir,
+      size: 1,
+      modified: DateTime(2026),
+      mode: 0x1a4,
+    );
+    const root = '/@adb/emulator-5554';
+    expect(sendTargetFor(e('a.JPG'), root), '$root/Pictures');
+    expect(sendTargetFor(e('clip.mp4'), root), '$root/Movies');
+    expect(sendTargetFor(e('song.mp3'), root), '$root/Music');
+    expect(sendTargetFor(e('notes.pdf'), root), '$root/Download');
+    expect(sendTargetFor(e('Photos', dir: true), root), '$root/Download');
   });
 
   test('device paths fail cleanly without adb', () async {
@@ -150,6 +169,48 @@ esac
       expect(File(thumb ?? '').lengthSync(), greaterThan(0));
       expect(await fs.localCopy('$device/a.png'), isNotNull);
       expect(await fs.localCopy('$device/missing.png'), isNull);
+    });
+
+    test('send to device sorts the selection into media folders', () async {
+      for (final d in ['Pictures', 'Movies', 'Download']) {
+        await Directory(p.join(storage.path, d)).create();
+      }
+      final local = await Directory(p.join(root.path, 'local')).create();
+      for (final name in ['a.jpg', 'clip.mp4', 'notes.txt']) {
+        await File(p.join(local.path, name)).writeAsString(name);
+      }
+      final c = BrowserController(
+        fs: fs,
+        trashDir: '/nonexistent',
+        initialPath: local.path,
+      );
+      addTearDown(c.dispose);
+      await c.start();
+      for (final e in c.entries) {
+        c.select(e.path, toggle: true);
+      }
+      final notices = <Notice>[];
+      c.notices.listen(notices.add);
+
+      await actionsFor(c, fs, '/nonexistent').sendSelectionToDevice(
+        device,
+        'Pixel',
+        copySuffix: 'copy',
+        resolve: keepBoth,
+      );
+      await pumpEventQueue();
+
+      String sent(String rel) =>
+          File(p.join(storage.path, rel)).readAsStringSync();
+      expect(sent('Pictures/a.jpg'), 'a.jpg');
+      expect(sent('Movies/clip.mp4'), 'clip.mp4');
+      expect(sent('Download/notes.txt'), 'notes.txt');
+      expect(
+        notices.single,
+        isA<SentToDeviceNotice>()
+            .having((n) => n.count, 'count', 3)
+            .having((n) => n.device, 'device', 'Pixel'),
+      );
     });
 
     test('copies to and from the device', () async {

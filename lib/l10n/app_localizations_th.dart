@@ -185,6 +185,11 @@ class AppLocalizationsTh extends AppLocalizations {
   String get menuOpenInTerminal => 'เปิดในเทอร์มินัล';
 
   @override
+  String menuOpenInApp(String app) {
+    return 'เปิดใน $app';
+  }
+
+  @override
   String get menuAddToSidebar => 'เพิ่มไปยังแถบด้านข้าง';
 
   @override
@@ -644,6 +649,21 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get sidebarDevices => 'อุปกรณ์';
+
+  @override
+  String menuSendTo(String device) {
+    return 'ส่งไปยัง $device';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ส่ง $count รายการไปยัง $device แล้ว',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

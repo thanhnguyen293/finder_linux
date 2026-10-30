@@ -185,6 +185,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get menuOpenInTerminal => '터미널에서 열기';
 
   @override
+  String menuOpenInApp(String app) {
+    return '$app에서 열기';
+  }
+
+  @override
   String get menuAddToSidebar => '사이드바에 추가';
 
   @override
@@ -643,6 +648,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get sidebarDevices => '기기';
+
+  @override
+  String menuSendTo(String device) {
+    return '$device(으)로 보내기';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count개 항목을 $device(으)로 보냈습니다',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

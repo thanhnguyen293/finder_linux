@@ -184,6 +184,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get menuOpenInTerminal => 'Mở trong Terminal';
 
   @override
+  String menuOpenInApp(String app) {
+    return 'Mở bằng $app';
+  }
+
+  @override
   String get menuAddToSidebar => 'Thêm vào thanh bên';
 
   @override
@@ -638,6 +643,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sidebarDevices => 'Thiết bị';
+
+  @override
+  String menuSendTo(String device) {
+    return 'Gửi tới $device';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Đã gửi $count mục tới $device',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

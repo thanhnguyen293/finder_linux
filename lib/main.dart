@@ -10,6 +10,7 @@ import 'launch_target.dart';
 import 'models/finder_settings.dart';
 import 'services/adb_service.dart';
 import 'services/clipboard_service.dart';
+import 'services/editor_apps.dart';
 import 'services/file_system_service.dart';
 import 'services/places_service.dart';
 import 'services/recent_folders.dart';
@@ -53,6 +54,8 @@ Future<void> main(List<String> args) async {
       : null;
   final updates = UpdateController(UpdateService());
   if (settings.value.checkForUpdates) unawaited(updates.checkIfDue());
+  final editors = EditorAppsService();
+  unawaited(editors.load());
   runApp(
     FinderApp(
       places: places,
@@ -64,6 +67,7 @@ Future<void> main(List<String> args) async {
       thumbnails: ThumbnailService(adb: const AdbService()),
       recents: RecentFolders(),
       updates: updates,
+      editors: editors,
       clipboardStore: switch (SystemClipboard.instance) {
         final system? => SystemFileClipboard(system),
         null => MemoryFileClipboard(),
@@ -89,6 +93,7 @@ class FinderApp extends StatelessWidget {
     this.thumbnails,
     this.recents,
     this.updates,
+    this.editors,
   });
 
   final PlacesService places;
@@ -116,6 +121,9 @@ class FinderApp extends StatelessWidget {
 
   /// Self-update from GitHub; none in widget tests.
   final UpdateController? updates;
+
+  /// Code editors for "Open in…" on git folders; none in widget tests.
+  final EditorAppsService? editors;
   final String initialPath;
   final String? initialSelection;
 
@@ -157,6 +165,7 @@ class FinderApp extends StatelessWidget {
               return AppServices(
                 thumbnails: thumbnails,
                 updates: updates,
+                editors: editors,
                 child: scaled,
               );
             },

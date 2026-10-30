@@ -270,6 +270,10 @@ class _FinderWindowState extends State<FinderWindow> {
     final text = switch (notice) {
       FailureNotice(:final failure) => failureMessage(l10n, failure),
       TrashedNotice(:final count) => l10n.movedToTrash(count),
+      SentToDeviceNotice(:final count, :final device) => l10n.sentToDevice(
+        count,
+        device,
+      ),
     };
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()

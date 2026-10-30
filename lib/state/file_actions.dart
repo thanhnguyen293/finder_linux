@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import '../core/result.dart';
 import '../models/file_entry.dart';
 import '../models/tag_color.dart';
+import '../services/adb_service.dart';
 import '../services/file_system_service.dart';
 import '../services/clipboard_service.dart';
 import '../services/transfer_service.dart';
@@ -170,6 +171,33 @@ class FileActions {
     copySuffix: copySuffix,
     resolve: resolve,
   );
+
+  /// Copies the selection to the device at [deviceRoot], each item into
+  /// the folder [sendTargetFor] picks (photos where the gallery finds them).
+  Future<void> sendSelectionToDevice(
+    String deviceRoot,
+    String deviceName, {
+    required String copySuffix,
+    required ConflictResolver resolve,
+  }) async {
+    final byFolder = <String, List<String>>{};
+    for (final e in _c.selectedEntries) {
+      (byFolder[sendTargetFor(e, deviceRoot)] ??= []).add(e.path);
+    }
+    var sent = 0;
+    for (final MapEntry(key: folder, value: paths) in byFolder.entries) {
+      final ok = await _transfer(
+        paths,
+        folder,
+        move: false,
+        copySuffix: copySuffix,
+        resolve: resolve,
+      );
+      if (!ok) return;
+      sent += paths.length;
+    }
+    if (sent > 0) _c.emit(SentToDeviceNotice(sent, deviceName));
+  }
 
   /// Moves [paths] to the Trash (Delete key, dropping on the Trash place).
   Future<void> trashPaths(List<String> paths) async {

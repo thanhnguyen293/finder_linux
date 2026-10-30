@@ -4,6 +4,9 @@ import '../../l10n/app_localizations.dart';
 import '../../models/file_entry.dart';
 import '../../models/place.dart';
 import '../../models/tag_color.dart';
+import '../../services/adb_service.dart';
+import '../../services/editor_apps.dart';
+import '../app_services.dart';
 import '../../theme/finder_theme.dart';
 import '../commands.dart';
 import '../finder_scope.dart';
@@ -50,6 +53,8 @@ Future<void> _show(
                 Expanded(
                   child: Text(
                     a.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: FinderMetrics.fontSize),
                   ),
                 ),
@@ -87,6 +92,9 @@ Future<void> showEntryMenu(BuildContext context, Offset at, FileEntry entry) {
   }
   final single = scope.browser.selection.length == 1;
   final folder = single && entry.isDirectory;
+  final editors = folder
+      ? AppServices.editorsOf(context)?.appsFor(entry.path) ?? const []
+      : const <EditorApp>[];
   return _show(context, at, [
     _Action(l10n.menuOpen, actions.openSelection, shortcut: 'Enter'),
     null,
@@ -100,6 +108,13 @@ Future<void> showEntryMenu(BuildContext context, Offset at, FileEntry entry) {
     ),
     _Action(l10n.menuDuplicate, cmd.duplicate, shortcut: 'Ctrl+D'),
     _Action(l10n.menuQuickLook, cmd.quickLook, shortcut: 'Space'),
+    // Local files only: device items are already there.
+    if (!isDevicePath(scope.browser.path) &&
+        scope.sidebar.devices.isNotEmpty) ...[
+      null,
+      for (final device in scope.sidebar.devices)
+        _Action(l10n.menuSendTo(device.label), () => cmd.sendToDevice(device)),
+    ],
     null,
     _Action(l10n.menuCopy, actions.copy, shortcut: 'Ctrl+C'),
     _Action(l10n.menuCut, actions.cut, shortcut: 'Ctrl+X'),
@@ -119,6 +134,11 @@ Future<void> showEntryMenu(BuildContext context, Offset at, FileEntry entry) {
       null,
       _Action(l10n.menuOpenInNewTab, () => cmd.newTab(entry.path)),
       _Action(l10n.menuOpenInTerminal, () => cmd.openInTerminal(entry.path)),
+      for (final app in editors)
+        _Action(
+          l10n.menuOpenInApp(app.name),
+          () => cmd.openInEditor(app, entry.path),
+        ),
       if (!scope.sidebar.isFavorite(entry.path))
         _Action(
           l10n.menuAddToSidebar,
@@ -159,6 +179,12 @@ Future<void> showBackgroundMenu(BuildContext context, Offset at) {
     _Action(l10n.menuPaste, cmd.paste, shortcut: 'Ctrl+V'),
     null,
     _Action(l10n.menuOpenInTerminal, cmd.openInTerminal),
+    for (final app
+        in AppServices.editorsOf(context)?.appsFor(browser.path) ?? const [])
+      _Action(
+        l10n.menuOpenInApp(app.name),
+        () => cmd.openInEditor(app, browser.path),
+      ),
     _Action(l10n.tooltipNewTab, cmd.newTab, shortcut: 'Ctrl+T'),
     _Action(l10n.menuNewWindow, cmd.newWindow, shortcut: 'Ctrl+N'),
     _Action(

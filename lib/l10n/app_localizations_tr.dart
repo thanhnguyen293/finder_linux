@@ -185,6 +185,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get menuOpenInTerminal => 'Terminal’de Aç';
 
   @override
+  String menuOpenInApp(String app) {
+    return '$app ile Aç';
+  }
+
+  @override
   String get menuAddToSidebar => 'Kenar Çubuğuna Ekle';
 
   @override
@@ -647,6 +652,21 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sidebarDevices => 'Aygıtlar';
+
+  @override
+  String menuSendTo(String device) {
+    return '$device aygıtına gönder';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count öge $device aygıtına gönderildi',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

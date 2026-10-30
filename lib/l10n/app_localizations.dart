@@ -440,6 +440,12 @@ abstract class AppLocalizations {
   /// **'Open in Terminal'**
   String get menuOpenInTerminal;
 
+  /// Opens a git folder in a code editor or IDE such as Visual Studio Code
+  ///
+  /// In en, this message translates to:
+  /// **'Open in {app}'**
+  String menuOpenInApp(String app);
+
   /// No description provided for @menuAddToSidebar.
   ///
   /// In en, this message translates to:
@@ -1219,6 +1225,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Devices'**
   String get sidebarDevices;
+
+  /// Context menu item copying the selection to an Android emulator or phone
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {device}'**
+  String menuSendTo(String device);
+
+  /// No description provided for @sentToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Sent 1 item to {device}} other{Sent {count} items to {device}}}'**
+  String sentToDevice(int count, String device);
 
   /// No description provided for @taggedIn.
   ///

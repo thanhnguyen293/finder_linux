@@ -185,6 +185,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get menuOpenInTerminal => 'Im Terminal öffnen';
 
   @override
+  String menuOpenInApp(String app) {
+    return 'In $app öffnen';
+  }
+
+  @override
   String get menuAddToSidebar => 'Zur Seitenleiste hinzufügen';
 
   @override
@@ -650,6 +655,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sidebarDevices => 'Geräte';
+
+  @override
+  String menuSendTo(String device) {
+    return 'An $device senden';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Objekte an $device gesendet',
+      one: '1 Objekt an $device gesendet',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

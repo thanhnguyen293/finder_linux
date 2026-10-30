@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../services/editor_apps.dart';
 import '../services/thumbnail_service.dart';
 import '../state/update_controller.dart';
 
@@ -10,11 +11,13 @@ class AppServices extends InheritedWidget {
     super.key,
     this.thumbnails,
     this.updates,
+    this.editors,
     required super.child,
   });
 
   final ThumbnailService? thumbnails;
   final UpdateController? updates;
+  final EditorAppsService? editors;
 
   static AppServices? _of(BuildContext context) =>
       context.getInheritedWidgetOfExactType<AppServices>();
@@ -25,7 +28,12 @@ class AppServices extends InheritedWidget {
   static UpdateController? updatesOf(BuildContext context) =>
       _of(context)?.updates;
 
+  static EditorAppsService? editorsOf(BuildContext context) =>
+      _of(context)?.editors;
+
   @override
   bool updateShouldNotify(AppServices old) =>
-      old.thumbnails != thumbnails || old.updates != updates;
+      old.thumbnails != thumbnails ||
+      old.updates != updates ||
+      old.editors != editors;
 }

@@ -28,6 +28,21 @@ bool isDeviceRoot(String path) => p.dirname(path) == adbRoot;
 
 typedef AdbDevice = ({String serial, String name});
 
+/// Where "Send to device" puts [entry] on the device at [deviceRoot]: the
+/// standard media folders Android's gallery and music apps index, and
+/// Download for everything else.
+String sendTargetFor(FileEntry entry, String deviceRoot) => p.join(
+  deviceRoot,
+  entry.isDirectory
+      ? 'Download'
+      : switch (entry.kind) {
+          FileKind.image => 'Pictures',
+          FileKind.video => 'Movies',
+          FileKind.audio => 'Music',
+          _ => 'Download',
+        },
+);
+
 /// Serials of the online devices in `adb devices` output (skipping ones
 /// that are offline or unauthorized).
 List<String> parseAdbDevices(String output) => [

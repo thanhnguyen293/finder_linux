@@ -185,6 +185,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get menuOpenInTerminal => 'ターミナルで開く';
 
   @override
+  String menuOpenInApp(String app) {
+    return '$appで開く';
+  }
+
+  @override
   String get menuAddToSidebar => 'サイドバーに追加';
 
   @override
@@ -643,6 +648,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get sidebarDevices => 'デバイス';
+
+  @override
+  String menuSendTo(String device) {
+    return '$deviceに送信';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count個の項目を$deviceに送信しました',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

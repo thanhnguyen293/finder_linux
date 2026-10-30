@@ -185,6 +185,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuOpenInTerminal => '在终端中打开';
 
   @override
+  String menuOpenInApp(String app) {
+    return '在 $app 中打开';
+  }
+
+  @override
   String get menuAddToSidebar => '添加到边栏';
 
   @override
@@ -642,6 +647,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sidebarDevices => '设备';
+
+  @override
+  String menuSendTo(String device) {
+    return '发送到 $device';
+  }
+
+  @override
+  String sentToDevice(int count, String device) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 个项目发送到 $device',
+    );
+    return '$_temp0';
+  }
 
   @override
   String taggedIn(String tag, String folder) {

@@ -29,6 +29,12 @@ class TrashedNotice extends Notice {
   final int count;
 }
 
+class SentToDeviceNotice extends Notice {
+  const SentToDeviceNotice(this.count, this.device);
+  final int count;
+  final String device;
+}
+
 const _maxCachedListings = 64;
 
 /// Where the search field looks: the whole tree below the folder (the
